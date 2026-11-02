@@ -22,6 +22,7 @@ export default [
       globals: {
         browser: true,
         document: 'readonly',
+        console: 'readonly',
         window: 'readonly',
       },
     },
@@ -39,6 +40,7 @@ export default [
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
       'react-refresh/only-export-components': 'warn',
     },
   },

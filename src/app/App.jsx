@@ -1,25 +1,33 @@
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-function HomePage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-primary">Seruput</h1>
-        <p className="mt-2 text-ink">Ruang persiapan pemesanan kafe.</p>
-        <Link className="mt-4 inline-block text-caramel underline" to="/">
-          Beranda
-        </Link>
-      </div>
-    </main>
-  );
-}
+import NotFoundPage from './NotFoundPage.jsx';
+import ProtectedRoute from './routes/ProtectedRoute.jsx';
+import RoleRoute from './routes/RoleRoute.jsx';
+import Layout from '@/components/Layout.jsx';
+import { AuthProvider } from '@/features/auth/AuthContext.jsx';
+import CatalogPage from '@/features/catalog/CatalogPage.jsx';
+import DashboardPage from '@/features/dashboard/DashboardPage.jsx';
+import LoginPage from '@/features/auth/LoginPage.jsx';
+import RegisterPage from '@/features/auth/RegisterPage.jsx';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<CatalogPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<RoleRoute allowedRoles={['owner']} />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+              </Route>
+            </Route>
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
