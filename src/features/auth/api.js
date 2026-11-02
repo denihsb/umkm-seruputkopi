@@ -25,17 +25,32 @@ async function unwrap(request) {
 }
 
 export async function signUp(fullName, email, password) {
-  return unwrap(
-    supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
       },
-    }),
-  );
+    },
+  });
+
+  if (error) {
+    if (error.message?.toLowerCase().includes('user already registered')) {
+      throw new Error('Email sudah terdaftar. Silakan masuk.');
+    }
+
+    throw toFriendlyError(error);
+  }
+
+  if (data.user?.identities?.length === 0) {
+    throw new Error('Email sudah terdaftar. Silakan masuk.');
+  }
+
+  return {
+    ...data,
+    needsEmailConfirmation: data.session === null,
+  };
 }
 
 export async function signIn(email, password) {
