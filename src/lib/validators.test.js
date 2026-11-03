@@ -3,9 +3,33 @@ import { describe, expect, it } from 'vitest';
 import {
   validateEmail,
   validateFullName,
+  validateLoginForm,
   validatePassword,
   validateRegisterForm,
 } from './validators.js';
+
+describe('validator login', () => {
+  it('menolak semua kolom kosong', () => {
+    expect(validateLoginForm({ email: '', password: '' })).toEqual({
+      email: 'Email wajib diisi.',
+      password: 'Kata sandi wajib diisi.',
+    });
+  });
+
+  it('menolak format email yang salah', () => {
+    expect(validateLoginForm({ email: 'bukan-email', password: '123' })).toEqual({
+      email: 'Format email tidak valid.',
+      password: '',
+    });
+  });
+
+  it('menerima email valid dan kata sandi yang terisi', () => {
+    expect(validateLoginForm({ email: 'dewi@example.com', password: '1' })).toEqual({
+      email: '',
+      password: '',
+    });
+  });
+});
 
 describe('validator registrasi', () => {
   it('menerima data registrasi yang valid', () => {

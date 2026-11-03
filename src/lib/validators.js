@@ -30,6 +30,13 @@ export function validateEmail(value) {
   return '';
 }
 
+export function validateLoginForm({ email, password }) {
+  return {
+    email: validateEmail(email),
+    password: password ? '' : requiredError('Kata sandi'),
+  };
+}
+
 export function validatePassword(value) {
   const password = value ?? '';
 

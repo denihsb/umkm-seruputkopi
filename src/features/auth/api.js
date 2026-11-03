@@ -14,6 +14,28 @@ function toFriendlyError(error) {
   return new Error('Terjadi kesalahan. Silakan coba lagi.');
 }
 
+function toLoginError(error) {
+  const message = error?.message?.toLowerCase() ?? '';
+
+  if (message.includes('invalid login credentials')) {
+    return new Error('Email atau kata sandi salah');
+  }
+
+  if (message.includes('email not confirmed')) {
+    return new Error('Email belum dikonfirmasi. Cek kotak masuk kamu.');
+  }
+
+  if (
+    /failed to fetch|fetch failed|network error|network request failed|load failed|networkerror/.test(
+      message,
+    )
+  ) {
+    return new Error('Tidak dapat terhubung. Periksa koneksi internet kamu.');
+  }
+
+  return new Error('Terjadi kesalahan. Coba lagi.');
+}
+
 async function unwrap(request) {
   const { data, error } = await request;
 
@@ -54,7 +76,19 @@ export async function signUp(fullName, email, password) {
 }
 
 export async function signIn(email, password) {
-  return unwrap(supabase.auth.signInWithPassword({ email, password }));
+  let result;
+
+  try {
+    result = await supabase.auth.signInWithPassword({ email, password });
+  } catch (error) {
+    throw toLoginError(error);
+  }
+
+  if (result.error) {
+    throw toLoginError(result.error);
+  }
+
+  return result.data;
 }
 
 export async function signOut() {
