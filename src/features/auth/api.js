@@ -92,7 +92,19 @@ export async function signIn(email, password) {
 }
 
 export async function signOut() {
-  return unwrap(supabase.auth.signOut());
+  let result;
+
+  try {
+    result = await supabase.auth.signOut();
+  } catch {
+    throw new Error('Gagal keluar. Coba lagi.');
+  }
+
+  if (result.error) {
+    throw new Error('Gagal keluar. Coba lagi.');
+  }
+
+  return result.data;
 }
 
 export async function getSession() {

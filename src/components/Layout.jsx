@@ -1,9 +1,27 @@
-import { Link, Outlet } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '@/features/auth/useAuth.js';
 
 export default function Layout() {
   const { profile, role, signOut, user } = useAuth();
+  const navigate = useNavigate();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
+
+  async function handleSignOut() {
+    setIsSigningOut(true);
+    setSignOutError('');
+
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      setSignOutError(error.message || 'Gagal keluar. Coba lagi.');
+    } finally {
+      setIsSigningOut(false);
+    }
+  }
 
   return (
     <>
@@ -15,13 +33,14 @@ export default function Layout() {
           <div className="flex items-center gap-3">
             {role === 'owner' && <Link to="/dashboard">Dashboard</Link>}
             <span>{profile?.full_name}</span>
-            <button type="button" onClick={signOut}>
-              Keluar
+            <button disabled={isSigningOut} type="button" onClick={handleSignOut}>
+              {isSigningOut ? 'Keluar...' : 'Keluar'}
             </button>
           </div>
         ) : (
           <Link to="/login">Masuk</Link>
         )}
+        {signOutError && <p role="alert">{signOutError}</p>}
       </header>
       <Outlet />
     </>
