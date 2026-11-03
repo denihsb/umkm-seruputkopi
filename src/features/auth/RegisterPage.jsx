@@ -4,10 +4,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { validateRegisterForm } from '@/lib/validators.js';
 
 import { useAuth } from './useAuth.js';
+import { getHomePath } from './redirect.js';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { signUp, loading } = useAuth();
+  const { role, signUp, loading } = useAuth();
   const [values, setValues] = useState({
     fullName: '',
     email: '',
@@ -48,7 +49,7 @@ export default function RegisterPage() {
       if (result.needsEmailConfirmation) {
         setConfirmationMessage('Cek email kamu untuk konfirmasi, lalu masuk.');
       } else {
-        navigate('/');
+        navigate(getHomePath(role));
       }
     } catch (error) {
       setServerError(error.message);
