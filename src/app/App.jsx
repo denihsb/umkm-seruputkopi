@@ -6,6 +6,7 @@ import RoleRoute from './routes/RoleRoute.jsx';
 import Layout from '@/components/Layout.jsx';
 import { AuthProvider } from '@/features/auth/AuthContext.jsx';
 import CatalogPage from '@/features/catalog/CatalogPage.jsx';
+import MenuDetailPage from '@/features/catalog/MenuDetailPage.jsx';
 import DashboardPage from '@/features/dashboard/DashboardPage.jsx';
 import LoginPage from '@/features/auth/LoginPage.jsx';
 import RegisterPage from '@/features/auth/RegisterPage.jsx';
@@ -17,6 +18,7 @@ export default function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<CatalogPage />} />
+            <Route path="/menu/:id" element={<MenuDetailPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
