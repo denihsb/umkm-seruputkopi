@@ -57,6 +57,12 @@ describe('Layout', () => {
     expect(await screen.findByText('Halaman: /')).toBeInTheDocument();
   });
 
+  it('menautkan nama pengguna ke halaman akun', () => {
+    renderLayout();
+
+    expect(screen.getByRole('link', { name: 'Dewi' })).toHaveAttribute('href', '/akun');
+  });
+
   it('menampilkan galat dan membiarkan pengguna tetap login jika signOut gagal', async () => {
     mocks.signOut.mockRejectedValue(new Error('Gagal keluar. Coba lagi.'));
     renderLayout();

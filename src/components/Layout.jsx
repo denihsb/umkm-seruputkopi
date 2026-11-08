@@ -32,7 +32,9 @@ export default function Layout() {
         {user ? (
           <div className="flex items-center gap-3">
             {role === 'owner' && <Link to="/dashboard">Dashboard</Link>}
-            <span>{profile?.full_name}</span>
+            <Link className="flex min-h-11 items-center" to="/akun">
+              {profile?.full_name}
+            </Link>
             <button disabled={isSigningOut} type="button" onClick={handleSignOut}>
               {isSigningOut ? 'Keluar...' : 'Keluar'}
             </button>

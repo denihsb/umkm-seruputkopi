@@ -5,6 +5,9 @@ import { validateLoginForm } from '@/lib/validators.js';
 
 import { getPostLoginPath } from './redirect.js';
 import { useAuth } from './useAuth.js';
+import AuthCard from './components/AuthCard.jsx';
+import PasswordField from './components/PasswordField.jsx';
+import TextField from './components/TextField.jsx';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -57,75 +60,48 @@ export default function LoginPage() {
   const isBusy = loading || isSubmitting;
 
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-8 sm:py-12">
-      <section className="rounded-base bg-white p-5 shadow-sm sm:p-8">
-        <h1 className="text-2xl font-bold text-primary">Masuk</h1>
-        <p className="mt-2 text-ink">Masuk ke akun Seruput kamu.</p>
-        {serverError && (
-          <p className="mt-4 rounded-base bg-red-100 p-3 text-red-800" role="alert">
-            {serverError}
-          </p>
-        )}
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
-          <Field
-            autoComplete="email"
-            error={errors.email}
-            label="Email"
-            name="email"
-            onBlur={() => validateField('email')}
-            onChange={updateValue}
-            type="email"
-            value={values.email}
-          />
-          <Field
-            autoComplete="current-password"
-            error={errors.password}
-            label="Kata sandi"
-            name="password"
-            onBlur={() => validateField('password')}
-            onChange={updateValue}
-            type="password"
-            value={values.password}
-          />
-          <button
-            className="min-h-11 w-full rounded-base bg-primary px-4 py-2 font-semibold text-cream disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={isBusy}
-            type="submit"
-          >
-            {isBusy ? 'Memproses...' : 'Masuk'}
-          </button>
-        </form>
-        <p className="mt-6 text-center text-ink">
-          <Link className="text-caramel underline" to="/register">
-            Belum punya akun? Daftar
-          </Link>
-        </p>
-      </section>
-    </main>
-  );
-}
-
-function Field({ autoComplete, error, label, name, onBlur, onChange, type, value }) {
-  return (
-    <div>
-      <label className="mb-1 block font-medium text-ink" htmlFor={name}>
-        {label}
-      </label>
-      <input
-        autoComplete={autoComplete}
-        className="min-h-11 w-full rounded-base border border-primary/30 bg-white px-3 text-ink outline-none focus:border-primary"
-        id={name}
-        name={name}
-        onBlur={onBlur}
-        onChange={onChange}
-        type={type}
-        value={value}
-      />
-      {error && (
-        <p className="mt-1 text-sm text-red-700" role="alert">
-          {error}
+    <AuthCard
+      footer={
+        <Link className="text-accent-text underline" to="/register">
+          Belum punya akun? Daftar
+        </Link>
+      }
+      subtitle="Selamat datang kembali, silakan masuk ke akunmu."
+      title="Masuk"
+    >
+      {serverError && (
+        <p className="mt-4 rounded-xl bg-danger-soft p-3 text-sm text-danger-text" role="alert">
+          {serverError}
         </p>
       )}
-    </div>
+      <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
+        <TextField
+          autoComplete="email"
+          error={errors.email}
+          label="Email"
+          name="email"
+          onBlur={() => validateField('email')}
+          onChange={updateValue}
+          type="email"
+          value={values.email}
+        />
+        <PasswordField
+          autoComplete="current-password"
+          error={errors.password}
+          label="Kata sandi"
+          name="password"
+          onBlur={() => validateField('password')}
+          onChange={updateValue}
+          value={values.password}
+        />
+        <button
+          className="h-12 w-full rounded-xl bg-primary px-4 text-base font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={isBusy}
+          type="submit"
+        >
+          {isBusy ? 'Memproses...' : 'Masuk'}
+        </button>
+      </form>
+    </AuthCard>
   );
 }

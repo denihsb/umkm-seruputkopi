@@ -5,6 +5,9 @@ import { validateRegisterForm } from '@/lib/validators.js';
 
 import { useAuth } from './useAuth.js';
 import { getHomePath } from './redirect.js';
+import AuthCard from './components/AuthCard.jsx';
+import PasswordField from './components/PasswordField.jsx';
+import TextField from './components/TextField.jsx';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -61,21 +64,27 @@ export default function RegisterPage() {
   const isBusy = loading || isSubmitting;
 
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-8">
-      <h1 className="text-2xl font-bold text-primary">Daftar</h1>
-      <p className="mt-2 text-ink">Buat akun untuk mulai menggunakan Seruput.</p>
+    <AuthCard
+      footer={
+        <Link className="text-accent-text underline" to="/login">
+          Sudah punya akun? Masuk
+        </Link>
+      }
+      subtitle="Buat akun untuk pesan kopi favoritmu di Seruput."
+      title="Daftar"
+    >
       {serverError && (
-        <p className="mt-4 rounded-base bg-red-100 p-3 text-red-800" role="alert">
+        <p className="mt-4 rounded-xl bg-danger-soft p-3 text-sm text-danger-text" role="alert">
           {serverError}
         </p>
       )}
       {confirmationMessage && (
-        <p className="mt-4 rounded-base bg-green-100 p-3 text-green-800" role="status">
+        <p className="mt-4 rounded-xl bg-primary-soft p-3 text-sm text-primary" role="status">
           {confirmationMessage}
         </p>
       )}
       <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
-        <Field
+        <TextField
           autoComplete="name"
           error={errors.fullName}
           label="Nama lengkap"
@@ -84,7 +93,7 @@ export default function RegisterPage() {
           onChange={updateValue}
           value={values.fullName}
         />
-        <Field
+        <TextField
           autoComplete="email"
           error={errors.email}
           label="Email"
@@ -94,64 +103,33 @@ export default function RegisterPage() {
           type="email"
           value={values.email}
         />
-        <Field
+        <PasswordField
           autoComplete="new-password"
           error={errors.password}
+          helpText="Minimal 8 karakter, mengandung huruf dan angka."
           label="Kata sandi"
           name="password"
           onBlur={() => validateField('password')}
           onChange={updateValue}
-          type="password"
           value={values.password}
         />
-        <Field
+        <PasswordField
           autoComplete="new-password"
           error={errors.confirmPassword}
           label="Konfirmasi kata sandi"
           name="confirmPassword"
           onBlur={() => validateField('confirmPassword')}
           onChange={updateValue}
-          type="password"
           value={values.confirmPassword}
         />
         <button
-          className="min-h-11 w-full rounded-base bg-primary px-4 py-2 font-semibold text-cream disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-12 w-full rounded-xl bg-primary px-4 text-base font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
           disabled={isBusy}
           type="submit"
         >
           {isBusy ? 'Memproses...' : 'Daftar'}
         </button>
       </form>
-      <p className="mt-6 text-center text-ink">
-        <Link className="text-caramel underline" to="/login">
-          Sudah punya akun? Masuk
-        </Link>
-      </p>
-    </main>
-  );
-}
-
-function Field({ autoComplete, error, label, name, onBlur, onChange, type = 'text', value }) {
-  return (
-    <div>
-      <label className="mb-1 block font-medium text-ink" htmlFor={name}>
-        {label}
-      </label>
-      <input
-        autoComplete={autoComplete}
-        className="min-h-11 w-full rounded-base border border-primary/30 bg-white px-3 text-ink outline-none focus:border-primary"
-        id={name}
-        name={name}
-        onBlur={onBlur}
-        onChange={onChange}
-        type={type}
-        value={value}
-      />
-      {error && (
-        <p className="mt-1 text-sm text-red-700" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
+    </AuthCard>
   );
 }

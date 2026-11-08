@@ -55,6 +55,19 @@ describe('LoginPage', () => {
     expect(mockSignIn).not.toHaveBeenCalled();
   });
 
+  it('menampilkan subtitle dan tautan pendaftaran', () => {
+    renderLoginPage();
+
+    expect(
+      screen.getByText('Selamat datang kembali, silakan masuk ke akunmu.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Belum punya akun? Daftar' })).toHaveAttribute(
+      'href',
+      '/register',
+    );
+    expect(screen.getByLabelText('Kata sandi')).toHaveAttribute('type', 'password');
+  });
+
   it('memanggil signIn dengan email dan kata sandi yang valid', async () => {
     mockSignIn.mockResolvedValue({});
     renderLoginPage();

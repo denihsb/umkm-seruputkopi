@@ -35,10 +35,30 @@ describe('RegisterPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Daftar' }));
 
-    expect(screen.getByText('Nama lengkap wajib diisi.')).toBeInTheDocument();
+    const alerts = screen.getAllByRole('alert');
+    expect(alerts).toHaveLength(4);
+    expect(alerts.map((alert) => alert.textContent)).toEqual(
+      expect.arrayContaining(['Nama lengkap wajib diisi.']),
+    );
     expect(screen.getByText('Email wajib diisi.')).toBeInTheDocument();
     expect(screen.getByText('Kata sandi wajib diisi.')).toBeInTheDocument();
     expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('menghubungkan label ke input dan menampilkan atau menyembunyikan kata sandi', () => {
+    renderRegisterPage();
+
+    const passwordInput = screen.getByLabelText('Kata sandi');
+    const toggleButton = screen.getAllByRole('button', { name: 'Tampilkan kata sandi' })[0];
+
+    expect(passwordInput).toHaveAttribute('type', 'password');
+    expect(screen.getByText('Minimal 8 karakter, mengandung huruf dan angka.')).toBeInTheDocument();
+    fireEvent.click(toggleButton);
+    expect(screen.getByLabelText('Kata sandi')).toHaveAttribute('type', 'text');
+    expect(screen.getAllByRole('button', { name: 'Sembunyikan kata sandi' })[0]).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   it('memanggil signUp dengan data valid', async () => {

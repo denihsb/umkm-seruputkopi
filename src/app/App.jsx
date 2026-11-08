@@ -10,6 +10,7 @@ import MenuDetailPage from '@/features/catalog/MenuDetailPage.jsx';
 import DashboardPage from '@/features/dashboard/DashboardPage.jsx';
 import LoginPage from '@/features/auth/LoginPage.jsx';
 import RegisterPage from '@/features/auth/RegisterPage.jsx';
+import AccountPage from '@/features/account/AccountPage.jsx';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
+              <Route path="/akun" element={<AccountPage />} />
               <Route element={<RoleRoute allowedRoles={['owner']} />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
               </Route>
