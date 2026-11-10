@@ -43,8 +43,17 @@ describe('catalog api', () => {
     const query = mockQuery({ data: [], error: null });
     mockFrom.mockReturnValue(query);
 
-    await listMenus({ keyword: 'kopi_100%' });
+    await listMenus({ keyword: '  kopi_100%  ' });
 
     expect(query.ilike).toHaveBeenCalledWith('name', '%kopi\\_100\\%%');
+  });
+
+  it('tidak mencari bila kata kunci hanya berisi spasi', async () => {
+    const query = mockQuery({ data: [], error: null });
+    mockFrom.mockReturnValue(query);
+
+    await listMenus({ keyword: '   ' });
+
+    expect(query.ilike).not.toHaveBeenCalled();
   });
 });

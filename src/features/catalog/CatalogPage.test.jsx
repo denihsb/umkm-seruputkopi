@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -38,7 +38,10 @@ describe('CatalogPage', () => {
     listCategories.mockReset().mockResolvedValue(categories);
     listMenus.mockReset().mockResolvedValue(menus);
   });
-  afterEach(() => cleanup());
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanup();
+  });
 
   it('menampilkan menu dan detail dasar pada kartu', async () => {
     renderPage();
@@ -62,6 +65,103 @@ describe('CatalogPage', () => {
       'aria-pressed',
       'true',
     );
+  });
+
+  it('menunda pencarian, memangkas kata kunci, dan mencegah submit halaman', async () => {
+    renderPage();
+    await screen.findByText('Kopi Susu Gula Aren');
+    vi.useFakeTimers();
+    const input = screen.getByRole('searchbox', { name: 'Cari menu' });
+
+    fireEvent.change(input, { target: { value: '  kopi  ' } });
+    fireEvent.submit(input.closest('form'));
+    expect(listMenus).toHaveBeenCalledTimes(1);
+
+    await act(async () => vi.advanceTimersByTime(300));
+    vi.useRealTimers();
+    await waitFor(() => expect(listMenus).toHaveBeenLastCalledWith({ keyword: 'kopi' }));
+  });
+
+  it('menggabungkan kata kunci dengan kategori aktif', async () => {
+    renderPage();
+    await screen.findByText('Kopi Susu Gula Aren');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Non-Kopi' }));
+    vi.useFakeTimers();
+    const input = screen.getByRole('searchbox', { name: 'Cari menu' });
+    fireEvent.change(input, { target: { value: '  susu ' } });
+    await act(async () => vi.advanceTimersByTime(300));
+    vi.useRealTimers();
+
+    await waitFor(() =>
+      expect(listMenus).toHaveBeenLastCalledWith({ categoryId: 3, keyword: 'susu' }),
+    );
+  });
+
+  it('menganggap kata kunci spasi sebagai kosong', async () => {
+    renderPage();
+    await screen.findByText('Kopi Susu Gula Aren');
+    vi.useFakeTimers();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Cari menu' }), {
+      target: { value: '   ' },
+    });
+
+    await act(async () => vi.advanceTimersByTime(300));
+    vi.useRealTimers();
+    await waitFor(() => expect(listMenus).toHaveBeenLastCalledWith({}));
+  });
+
+  it('mengosongkan pencarian dan mengembalikan fokus', async () => {
+    renderPage();
+    await screen.findByText('Kopi Susu Gula Aren');
+    vi.useFakeTimers();
+    const input = screen.getByRole('searchbox', { name: 'Cari menu' });
+    fireEvent.change(input, { target: { value: 'kopi' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus pencarian' }));
+
+    expect(input).toHaveValue('');
+    expect(input).toHaveFocus();
+    await act(async () => vi.advanceTimersByTime(300));
+    vi.useRealTimers();
+    await waitFor(() => expect(listMenus).toHaveBeenLastCalledWith({}));
+  });
+
+  it('menampilkan jumlah hasil dan pesan saat hasil pencarian kosong', async () => {
+    listMenus.mockResolvedValue([]);
+    renderPage();
+    await waitFor(() => expect(listMenus).toHaveBeenCalled());
+    vi.useFakeTimers();
+    const input = screen.getByRole('searchbox', { name: 'Cari menu' });
+    fireEvent.change(input, { target: { value: '  tidak ada  ' } });
+    await act(async () => vi.advanceTimersByTime(300));
+    vi.useRealTimers();
+
+    expect(await screen.findByText('0 menu ditemukan')).toBeInTheDocument();
+    expect(await screen.findByText('Menu "tidak ada" tidak ditemukan.')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Hapus pencarian' })).toHaveLength(2);
+  });
+
+  it('mengabaikan respons pencarian lama yang tiba belakangan', async () => {
+    const requests = [];
+    listMenus.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          requests.push(resolve);
+        }),
+    );
+    renderPage();
+    const input = screen.getByRole('searchbox', { name: 'Cari menu' });
+    vi.useFakeTimers();
+    fireEvent.change(input, { target: { value: 'baru' } });
+    await act(async () => vi.advanceTimersByTime(300));
+    vi.useRealTimers();
+    expect(requests).toHaveLength(2);
+
+    await act(async () => requests[1]([]));
+    expect(await screen.findByText('Menu "baru" tidak ditemukan.')).toBeInTheDocument();
+    await act(async () => requests[0](menus));
+    expect(screen.queryByText('Kopi Susu Gula Aren')).not.toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it('menampilkan skeleton saat kategori atau menu masih dimuat', () => {

@@ -36,8 +36,9 @@ export async function listMenus({ categoryId, keyword } = {}) {
   if (categoryId !== undefined && categoryId !== null) {
     query = query.eq('category_id', categoryId);
   }
-  if (keyword) {
-    query = query.ilike('name', `%${escapeIlike(keyword)}%`);
+  const normalizedKeyword = typeof keyword === 'string' ? keyword.trim() : keyword;
+  if (normalizedKeyword) {
+    query = query.ilike('name', `%${escapeIlike(normalizedKeyword)}%`);
   }
 
   const data = await read(query);
