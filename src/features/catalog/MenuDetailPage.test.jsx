@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import MenuDetailPage from './MenuDetailPage.jsx';
+import { CartProvider } from '@/features/cart/CartContext.jsx';
 
 const { getMenuDetail } = vi.hoisted(() => ({ getMenuDetail: vi.fn() }));
 
@@ -10,11 +11,13 @@ vi.mock('./api.js', () => ({ getMenuDetail }));
 
 function renderPage(onAdd) {
   return render(
-    <MemoryRouter initialEntries={['/menu/1']}>
-      <Routes>
-        <Route path="/menu/:id" element={<MenuDetailPage onAdd={onAdd} />} />
-      </Routes>
-    </MemoryRouter>,
+    <CartProvider>
+      <MemoryRouter initialEntries={['/menu/1']}>
+        <Routes>
+          <Route path="/menu/:id" element={<MenuDetailPage onAdd={onAdd} />} />
+        </Routes>
+      </MemoryRouter>
+    </CartProvider>,
   );
 }
 
@@ -142,6 +145,23 @@ describe('MenuDetailPage', () => {
         ]),
       }),
     );
+  });
+
+  it('menambah ke CartProvider, menampilkan notifikasi, dan mengembalikan jumlah ke satu', async () => {
+    getMenuDetail.mockResolvedValue({ ...menu, variantGroups: [] });
+    renderPage();
+
+    await screen.findByRole('heading', { name: menu.name });
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah jumlah' }));
+    fireEvent.click(screen.getByRole('button', { name: /Tambah · Rp36.000/ }));
+
+    expect(screen.getByRole('status')).toHaveTextContent('Ditambahkan ke keranjang');
+    expect(screen.getByRole('link', { name: 'Lihat keranjang' })).toHaveAttribute(
+      'href',
+      '/keranjang',
+    );
+    expect(screen.getByRole('button', { name: 'Tambah jumlah' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Tambah · Rp18.000/ })).toBeInTheDocument();
   });
 
   it('menonaktifkan tombol dan memberi pesan saat grup wajib kosong', async () => {

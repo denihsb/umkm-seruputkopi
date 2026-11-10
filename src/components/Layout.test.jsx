@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import Layout from './Layout.jsx';
+import { CartProvider } from '@/features/cart/CartContext.jsx';
 
 const mocks = vi.hoisted(() => ({
   signOut: vi.fn(),
@@ -18,16 +19,29 @@ function CurrentPath() {
   return <p>Halaman: {location.pathname}</p>;
 }
 
-function renderLayout() {
+const cartItem = {
+  key: '1:2',
+  menuId: 1,
+  menuName: 'Kopi',
+  basePrice: 10000,
+  unitPrice: 10000,
+  quantity: 3,
+  note: '',
+  selectedOptions: [],
+};
+
+function renderLayout(initialItems = []) {
   return render(
-    <MemoryRouter initialEntries={['/dashboard']}>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route element={<CurrentPath />} path="/dashboard" />
-          <Route element={<CurrentPath />} path="/" />
-        </Route>
-      </Routes>
-    </MemoryRouter>,
+    <CartProvider initialItems={initialItems}>
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route element={<CurrentPath />} path="/dashboard" />
+            <Route element={<CurrentPath />} path="/" />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </CartProvider>,
   );
 }
 
@@ -73,5 +87,17 @@ describe('Layout', () => {
     expect(screen.getByText('Dewi')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Keluar' })).toBeInTheDocument();
     expect(screen.getByText('Halaman: /dashboard')).toBeInTheDocument();
+  });
+
+  it('menampilkan lencana sesuai jumlah item dan menyembunyikannya saat kosong', () => {
+    const { unmount } = renderLayout([cartItem]);
+
+    expect(screen.getByRole('link', { name: 'Keranjang, 3 item' })).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument();
+
+    unmount();
+    renderLayout();
+    expect(screen.getByRole('link', { name: 'Keranjang, 0 item' })).toBeInTheDocument();
+    expect(screen.queryByText('3')).not.toBeInTheDocument();
   });
 });

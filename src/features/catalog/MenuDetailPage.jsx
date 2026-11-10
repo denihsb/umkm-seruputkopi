@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import QuantityStepper from '@/components/QuantityStepper.jsx';
+import Toast from '@/components/Toast.jsx';
 import { formatRupiah } from '@/lib/format.js';
+import { useCart } from '@/features/cart/useCart.js';
 
 import { getMenuDetail } from './api.js';
 import {
@@ -61,6 +63,8 @@ export default function MenuDetailPage({ onAdd }) {
   const [retryCount, setRetryCount] = useState(0);
   const [selection, setSelection] = useState({});
   const [quantity, setQuantity] = useState(1);
+  const [showToast, setShowToast] = useState(false);
+  const { addItem } = useCart();
 
   useEffect(() => {
     let isCurrent = true;
@@ -137,6 +141,12 @@ export default function MenuDetailPage({ onAdd }) {
   const unitPrice = calcUnitPrice(menu.basePrice, menu.variantGroups, selection);
   const missingRequiredGroups = getMissingRequiredGroups(menu.variantGroups, selection);
   const canAdd = missingRequiredGroups.length === 0;
+  function handleAdd() {
+    const item = buildCartItem(menu, menu.variantGroups, selection, quantity);
+    (onAdd ?? addItem)(item);
+    setQuantity(1);
+    setShowToast(true);
+  }
 
   return (
     <main className="mx-auto max-w-5xl p-4 pb-32 md:p-8 md:pb-8">
@@ -189,11 +199,12 @@ export default function MenuDetailPage({ onAdd }) {
             canAdd={canAdd}
             className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur md:static md:mt-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none"
             missingRequiredGroups={missingRequiredGroups}
-            onAdd={() => onAdd?.(buildCartItem(menu, menu.variantGroups, selection, quantity))}
+            onAdd={handleAdd}
             totalPrice={unitPrice * quantity}
           />
         </div>
       </div>
+      {showToast && <Toast onClose={() => setShowToast(false)} />}
     </main>
   );
 }
