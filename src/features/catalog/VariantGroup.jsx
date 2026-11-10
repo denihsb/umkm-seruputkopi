@@ -19,15 +19,16 @@ export default function VariantGroup({ group, selectedIds = [], onChange }) {
   };
 
   return (
-    <section aria-labelledby={`variant-group-${group.id}`} className="space-y-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id={`variant-group-${group.id}`} className="font-semibold text-text">
-          {group.name}
-        </h2>
-        <span className="text-xs text-text-muted">
+    <fieldset className="space-y-3" aria-labelledby={`variant-group-${group.id}`}>
+      <legend
+        id={`variant-group-${group.id}`}
+        className="flex w-full items-baseline justify-between gap-3"
+      >
+        <h2 className="font-semibold text-text">{group.name}</h2>
+        <span className="text-xs font-normal text-text-muted">
           {group.isRequired ? 'Wajib dipilih' : 'Boleh dilewati'}
         </span>
-      </div>
+      </legend>
       <div className="flex flex-wrap gap-2">
         {group.options.map((option) => {
           const optionContent = (
@@ -51,18 +52,28 @@ export default function VariantGroup({ group, selectedIds = [], onChange }) {
           }
 
           return (
-            <button
-              aria-pressed={isSelected(option.id)}
-              className="inline-flex items-center gap-1 rounded-full border border-border-control bg-surface px-3 py-2 text-sm text-text transition-colors hover:border-primary"
+            <label
+              className={`inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-full border px-3 py-2 text-sm text-text transition-colors focus-within:ring-2 focus-within:ring-primary ${
+                isSelected(option.id)
+                  ? 'border-primary bg-primary-soft'
+                  : 'border-border-control bg-surface hover:border-primary'
+              }`}
               key={option.id}
-              onClick={() => handleChange(option.id)}
-              type="button"
             >
+              <input
+                checked={isSelected(option.id)}
+                className="sr-only"
+                name={`variant-${group.id}`}
+                onChange={() => handleChange(option.id)}
+                type={group.selectionType === 'single' ? 'radio' : 'checkbox'}
+                value={option.id}
+              />
+              {isSelected(option.id) && <span aria-hidden="true">✓</span>}
               {optionContent}
-            </button>
+            </label>
           );
         })}
       </div>
-    </section>
+    </fieldset>
   );
 }

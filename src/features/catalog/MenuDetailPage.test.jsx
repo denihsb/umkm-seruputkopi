@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -8,11 +8,11 @@ const { getMenuDetail } = vi.hoisted(() => ({ getMenuDetail: vi.fn() }));
 
 vi.mock('./api.js', () => ({ getMenuDetail }));
 
-function renderPage() {
+function renderPage(onAdd) {
   return render(
     <MemoryRouter initialEntries={['/menu/1']}>
       <Routes>
-        <Route path="/menu/:id" element={<MenuDetailPage />} />
+        <Route path="/menu/:id" element={<MenuDetailPage onAdd={onAdd} />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -75,7 +75,7 @@ describe('MenuDetailPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: menu.name })).toBeInTheDocument();
-    expect(screen.getByText('Rp18.000')).toBeInTheDocument();
+    expect(screen.getAllByText('Rp18.000').length).toBeGreaterThan(0);
     expect(screen.getByText(menu.description)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ukuran' })).toBeInTheDocument();
     expect(screen.getByText('Wajib dipilih')).toBeInTheDocument();
@@ -91,5 +91,73 @@ describe('MenuDetailPage', () => {
       expect(screen.getByRole('heading', { name: menu.name })).toBeInTheDocument(),
     );
     expect(screen.queryByLabelText('Pilihan varian')).not.toBeInTheDocument();
+  });
+
+  it('mengubah varian, jumlah, harga, dan memanggil onAdd', async () => {
+    const onAdd = vi.fn();
+    const interactiveMenu = {
+      ...menu,
+      variantGroups: [
+        ...menu.variantGroups,
+        {
+          id: 2,
+          name: 'Suhu',
+          isRequired: true,
+          selectionType: 'single',
+          options: [
+            { id: 3, name: 'Panas', priceDelta: 0, isDefault: true },
+            { id: 4, name: 'Dingin', priceDelta: 0, isDefault: false },
+          ],
+        },
+        {
+          id: 3,
+          name: 'Es',
+          isRequired: true,
+          selectionType: 'single',
+          options: [{ id: 5, name: 'Normal', priceDelta: 0, isDefault: true }],
+        },
+      ],
+    };
+    getMenuDetail.mockResolvedValue(interactiveMenu);
+
+    renderPage(onAdd);
+    await screen.findByRole('heading', { name: menu.name });
+    fireEvent.click(screen.getByRole('radio', { name: 'Dingin' }));
+    expect(screen.getByRole('radio', { name: 'Normal' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: /Besar/ }));
+    expect(screen.getByRole('button', { name: /Tambah · Rp22.000/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah jumlah' }));
+    expect(screen.getByRole('button', { name: /Tambah · Rp44.000/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Tambah · Rp44.000/ }));
+
+    expect(onAdd).toHaveBeenCalledWith(
+      expect.objectContaining({
+        menuId: 1,
+        unitPrice: 22000,
+        quantity: 2,
+        selectedOptions: expect.arrayContaining([
+          expect.objectContaining({ optionId: 2 }),
+          expect.objectContaining({ optionId: 4 }),
+          expect.objectContaining({ optionId: 5 }),
+        ]),
+      }),
+    );
+  });
+
+  it('menonaktifkan tombol dan memberi pesan saat grup wajib kosong', async () => {
+    getMenuDetail.mockResolvedValue({
+      ...menu,
+      variantGroups: [
+        {
+          ...menu.variantGroups[0],
+          options: [{ id: 2, name: 'Besar', priceDelta: 4000, isDefault: false }],
+        },
+      ],
+    });
+
+    renderPage();
+    await screen.findByRole('heading', { name: menu.name });
+    expect(screen.getByRole('status')).toHaveTextContent('Pilih Ukuran');
+    expect(screen.getByRole('button', { name: /^Tambah ·/ })).toBeDisabled();
   });
 });

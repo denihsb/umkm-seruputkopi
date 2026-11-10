@@ -1,9 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import QuantityStepper from '@/components/QuantityStepper.jsx';
 import { formatRupiah } from '@/lib/format.js';
 
 import { getMenuDetail } from './api.js';
+import {
+  buildCartItem,
+  calcUnitPrice,
+  getInitialSelection,
+  getMissingRequiredGroups,
+  isGroupVisible,
+  toggleOption,
+} from './pricing.js';
 import VariantGroup from './VariantGroup.jsx';
 
 function MenuDetailSkeleton() {
@@ -44,12 +53,14 @@ function MenuImage({ menu }) {
   );
 }
 
-export default function MenuDetailPage() {
+export default function MenuDetailPage({ onAdd }) {
   const { id } = useParams();
   const [menu, setMenu] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [selection, setSelection] = useState({});
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     let isCurrent = true;
@@ -58,7 +69,11 @@ export default function MenuDetailPage() {
     setError(null);
     getMenuDetail(id)
       .then((result) => {
-        if (isCurrent) setMenu(result);
+        if (isCurrent) {
+          setMenu(result);
+          setSelection(getInitialSelection(result.variantGroups));
+          setQuantity(1);
+        }
       })
       .catch((requestError) => {
         if (isCurrent) setError(requestError);
@@ -116,8 +131,15 @@ export default function MenuDetailPage() {
     );
   }
 
+  const visibleGroups = menu.variantGroups.filter((group) =>
+    isGroupVisible(group, menu.variantGroups, selection),
+  );
+  const unitPrice = calcUnitPrice(menu.basePrice, menu.variantGroups, selection);
+  const missingRequiredGroups = getMissingRequiredGroups(menu.variantGroups, selection);
+  const canAdd = missingRequiredGroups.length === 0;
+
   return (
-    <main className="mx-auto max-w-5xl p-4 md:p-8">
+    <main className="mx-auto max-w-5xl p-4 pb-32 md:p-8 md:pb-8">
       <Link
         className="mb-6 inline-flex min-h-11 items-center text-primary hover:text-primary-hover"
         to="/"
@@ -126,23 +148,72 @@ export default function MenuDetailPage() {
       </Link>
       <div className="grid gap-8 md:grid-cols-2">
         <MenuImage menu={menu} />
-        <div className="space-y-6">
+        <div className="flex min-w-0 flex-col gap-6 md:min-h-[32rem]">
           <div className="space-y-3">
             <h1 className="font-serif text-3xl font-semibold text-text md:text-4xl">{menu.name}</h1>
             {menu.description && (
               <p className="text-sm leading-6 text-text-muted">{menu.description}</p>
             )}
-            <p className="text-xl font-semibold text-primary">{formatRupiah(menu.basePrice)}</p>
+            <p className="text-xl font-semibold text-primary">{formatRupiah(unitPrice)}</p>
           </div>
           {menu.variantGroups.length > 0 && (
             <div aria-label="Pilihan varian" className="space-y-6 border-t border-border pt-6">
-              {menu.variantGroups.map((group) => (
-                <VariantGroup group={group} key={group.id} />
+              {visibleGroups.map((group) => (
+                <VariantGroup
+                  group={group}
+                  key={group.id}
+                  onChange={(nextIds) =>
+                    setSelection((currentSelection) => {
+                      const previousIds = currentSelection[group.id] ?? [];
+                      const changedId =
+                        nextIds.find((optionId) => !previousIds.includes(optionId)) ??
+                        previousIds.find((optionId) => !nextIds.includes(optionId));
+                      return toggleOption(
+                        menu.variantGroups,
+                        currentSelection,
+                        group.id,
+                        changedId,
+                      );
+                    })
+                  }
+                  selectedIds={selection[group.id] ?? []}
+                />
               ))}
             </div>
           )}
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-medium text-text">Jumlah</span>
+            <QuantityStepper onChange={setQuantity} value={quantity} />
+          </div>
+          <AddBar
+            canAdd={canAdd}
+            className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur md:static md:mt-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none"
+            missingRequiredGroups={missingRequiredGroups}
+            onAdd={() => onAdd?.(buildCartItem(menu, menu.variantGroups, selection, quantity))}
+            totalPrice={unitPrice * quantity}
+          />
         </div>
       </div>
     </main>
+  );
+}
+
+function AddBar({ canAdd, className, missingRequiredGroups, onAdd, totalPrice }) {
+  return (
+    <div className={`space-y-2 ${className ?? ''}`}>
+      {!canAdd && (
+        <p role="status" className="text-sm text-danger-text">
+          Pilih {missingRequiredGroups[0]}
+        </p>
+      )}
+      <button
+        className="min-h-11 w-full rounded-md bg-primary px-4 py-2 font-medium text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={!canAdd}
+        onClick={onAdd}
+        type="button"
+      >
+        Tambah · <span aria-live="polite">{formatRupiah(totalPrice)}</span>
+      </button>
+    </div>
   );
 }
