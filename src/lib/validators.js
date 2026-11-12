@@ -37,6 +37,15 @@ export function validateLoginForm({ email, password }) {
   };
 }
 
+export function validateCheckoutForm({ orderType, notes }) {
+  const normalizedNotes = notes?.trim() ?? '';
+
+  return {
+    orderType: ['take_away', 'dine_in'].includes(orderType) ? '' : 'Pilih tipe pesanan.',
+    notes: normalizedNotes.length > 200 ? 'Catatan maksimal 200 karakter.' : '',
+  };
+}
+
 export function validatePassword(value) {
   const password = value ?? '';
 
