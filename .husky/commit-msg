@@ -1,1 +1,5 @@
+case "$(sed -n '1p' "$1")" in
+  Merge\ *) exit 0 ;;
+esac
+
 npx --no -- commitlint --edit "$1"
