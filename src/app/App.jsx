@@ -5,19 +5,19 @@ import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import RoleRoute from './routes/RoleRoute.jsx';
 import Layout from '@/components/Layout.jsx';
 import { AuthProvider } from '@/features/auth/AuthContext.jsx';
+import AccountPage from '@/features/account/AccountPage.jsx';
+import { CartProvider } from '@/features/cart/CartContext.jsx';
+import CartPage from '@/features/cart/CartPage.jsx';
 import CatalogPage from '@/features/catalog/CatalogPage.jsx';
 import MenuDetailPage from '@/features/catalog/MenuDetailPage.jsx';
 import DashboardPage from '@/features/dashboard/DashboardPage.jsx';
 import LoginPage from '@/features/auth/LoginPage.jsx';
 import RegisterPage from '@/features/auth/RegisterPage.jsx';
-import AccountPage from '@/features/account/AccountPage.jsx';
-import CartPage from '@/features/cart/CartPage.jsx';
-import { CartProvider } from '@/features/cart/CartContext.jsx';
 
 export default function App() {
   return (
-    <CartProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <CartProvider>
         <BrowserRouter>
           <Routes>
             <Route element={<Layout />}>
@@ -36,7 +36,7 @@ export default function App() {
             </Route>
           </Routes>
         </BrowserRouter>
-      </AuthProvider>
-    </CartProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 }
