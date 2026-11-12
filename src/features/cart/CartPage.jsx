@@ -33,11 +33,13 @@ export default function CartPage() {
             </Link>
           </section>
         </main>
-        <Toast
-          key={toastVersion}
-          message={toastVersion > 0 ? 'Item dihapus dari keranjang' : ''}
-          onDismiss={() => setToastVersion(0)}
-        />
+        {toastVersion > 0 && (
+          <Toast
+            key={toastVersion}
+            message="Item dihapus dari keranjang"
+            onDismiss={() => setToastVersion(0)}
+          />
+        )}
       </>
     );
   }
@@ -125,11 +127,13 @@ export default function CartPage() {
           </Link>
         </aside>
       </div>
-      <Toast
-        key={toastVersion}
-        message={toastVersion > 0 ? 'Item dihapus dari keranjang' : ''}
-        onDismiss={() => setToastVersion(0)}
-      />
+      {toastVersion > 0 && (
+        <Toast
+          key={toastVersion}
+          message="Item dihapus dari keranjang"
+          onDismiss={() => setToastVersion(0)}
+        />
+      )}
     </main>
   );
 }
