@@ -11,27 +11,32 @@ import DashboardPage from '@/features/dashboard/DashboardPage.jsx';
 import LoginPage from '@/features/auth/LoginPage.jsx';
 import RegisterPage from '@/features/auth/RegisterPage.jsx';
 import AccountPage from '@/features/account/AccountPage.jsx';
+import { CartProvider } from '@/features/cart/CartContext.jsx';
+import CartPage from '@/features/cart/CartPage.jsx';
 
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<CatalogPage />} />
-            <Route path="/menu/:id" element={<MenuDetailPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route element={<ProtectedRoute />}>
-              <Route path="/akun" element={<AccountPage />} />
-              <Route element={<RoleRoute allowedRoles={['owner']} />}>
-                <Route path="/dashboard" element={<DashboardPage />} />
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<CatalogPage />} />
+              <Route path="/menu/:id" element={<MenuDetailPage />} />
+              <Route path="/keranjang" element={<CartPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/akun" element={<AccountPage />} />
+                <Route element={<RoleRoute allowedRoles={['owner']} />}>
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                </Route>
               </Route>
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
     </AuthProvider>
   );
 }
