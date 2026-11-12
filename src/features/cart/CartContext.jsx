@@ -1,11 +1,21 @@
-import { useCallback, useMemo, useReducer } from 'react';
+import { useCallback, useEffect, useMemo, useReducer } from 'react';
 
 import { getCartTotals, sanitizeCart } from './cartLogic.js';
 import { CartContext } from './cartContext.js';
 import { cartReducer } from './cartReducer.js';
+import { loadCart, saveCart, STORAGE_KEY } from './cartStorage.js';
 
-export function CartProvider({ children, initialItems = [] }) {
-  const [items, dispatch] = useReducer(cartReducer, initialItems, sanitizeCart);
+function initializeCart({ initialItems }) {
+  const storedItems = loadCart();
+  return initialItems === undefined ? storedItems : sanitizeCart(initialItems);
+}
+
+function haveSameItems(firstItems, secondItems) {
+  return JSON.stringify(firstItems) === JSON.stringify(secondItems);
+}
+
+export function CartProvider({ children, initialItems }) {
+  const [items, dispatch] = useReducer(cartReducer, { initialItems }, initializeCart);
   const totals = useMemo(() => getCartTotals(items), [items]);
 
   const addItemToCart = useCallback((item) => {
@@ -26,6 +36,27 @@ export function CartProvider({ children, initialItems = [] }) {
   const hydrate = useCallback((nextItems) => {
     dispatch({ type: 'hydrate', items: nextItems });
   }, []);
+
+  useEffect(() => {
+    const storedItems = loadCart();
+    if (!haveSameItems(storedItems, items)) {
+      saveCart(items);
+    }
+  }, [items]);
+
+  useEffect(() => {
+    function handleStorage(event) {
+      if (event.key !== STORAGE_KEY) return;
+
+      const storedItems = loadCart();
+      if (!haveSameItems(storedItems, items)) {
+        hydrate(storedItems);
+      }
+    }
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [hydrate, items]);
 
   const value = useMemo(
     () => ({
