@@ -16,7 +16,7 @@ import DashboardOrderPlaceholder from '@/features/dashboard/DashboardOrderPlaceh
 import LoginPage from '@/features/auth/LoginPage.jsx';
 import RegisterPage from '@/features/auth/RegisterPage.jsx';
 import CheckoutPage from '@/features/checkout/CheckoutPage.jsx';
-import ConfirmationPlaceholder from '@/features/checkout/ConfirmationPlaceholder.jsx';
+import ConfirmationPage from '@/features/orders/ConfirmationPage.jsx';
 import PaymentPage from '@/features/checkout/PaymentPage.jsx';
 
 export default function App() {
@@ -36,7 +36,7 @@ export default function App() {
                   <Route path="/akun" element={<AccountPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/checkout/pembayaran" element={<PaymentPage />} />
-                  <Route path="/pesanan/:id" element={<ConfirmationPlaceholder />} />
+                  <Route path="/pesanan/:id" element={<ConfirmationPage />} />
                   <Route element={<RoleRoute allowedRoles={['owner']} />}>
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/dashboard/pesanan/:id" element={<DashboardOrderPlaceholder />} />
