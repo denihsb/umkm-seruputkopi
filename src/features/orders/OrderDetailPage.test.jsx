@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -7,12 +7,16 @@ import RoleRoute from '@/app/routes/RoleRoute.jsx';
 import OrderDetailPage from './OrderDetailPage.jsx';
 import { formatDateTime } from '@/lib/format.js';
 
-const { mockGetOrderDetail, mockUseAuth } = vi.hoisted(() => ({
+const { mockGetOrderDetail, mockUpdateOrderStatus, mockUseAuth } = vi.hoisted(() => ({
   mockGetOrderDetail: vi.fn(),
+  mockUpdateOrderStatus: vi.fn(),
   mockUseAuth: vi.fn(),
 }));
 
 vi.mock('./api.js', () => ({ getOrderDetail: mockGetOrderDetail }));
+vi.mock('@/features/dashboard/api.js', () => ({
+  updateOrderStatus: mockUpdateOrderStatus,
+}));
 vi.mock('@/features/auth/useAuth.js', () => ({ useAuth: () => mockUseAuth() }));
 
 const order = {
@@ -58,6 +62,8 @@ describe('OrderDetailPage', () => {
   beforeEach(() => {
     mockGetOrderDetail.mockReset();
     mockGetOrderDetail.mockResolvedValue(order);
+    mockUpdateOrderStatus.mockReset();
+    mockUpdateOrderStatus.mockResolvedValue({ id: order.id, status: 'processing' });
     mockUseAuth.mockReturnValue({
       user: { id: 'owner-1' },
       role: 'owner',
@@ -88,7 +94,6 @@ describe('OrderDetailPage', () => {
       '/dashboard',
     );
     expect(screen.getByLabelText('Area tombol status pesanan')).toBeInTheDocument();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('menampilkan catatan hanya jika berisi teks', async () => {
@@ -148,6 +153,81 @@ describe('OrderDetailPage', () => {
     renderPage();
 
     expect(screen.getByLabelText('Memuat detail pesanan')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['received', 'Proses pesanan'],
+    ['processing', 'Tandai siap'],
+    ['ready', 'Tandai selesai'],
+  ])('menampilkan aksi %s yang benar', async (status, actionLabel) => {
+    mockGetOrderDetail.mockResolvedValue({ ...order, status });
+
+    renderPage();
+
+    expect(await screen.findByRole('button', { name: actionLabel })).toBeInTheDocument();
+  });
+
+  it('memperbarui status sekali, memuat ulang detail, dan menampilkan Toast', async () => {
+    mockGetOrderDetail
+      .mockResolvedValueOnce({
+        ...order,
+        status: 'ready',
+        paymentMethod: 'cash',
+        paymentStatus: 'pending',
+      })
+      .mockResolvedValueOnce({
+        ...order,
+        status: 'completed',
+        paymentMethod: 'cash',
+        paymentStatus: 'paid',
+      });
+
+    let resolveUpdate;
+    mockUpdateOrderStatus.mockReturnValue(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      }),
+    );
+
+    renderPage();
+
+    const button = await screen.findByRole('button', { name: 'Tandai selesai' });
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    expect(await screen.findByRole('button', { name: 'Memproses...' })).toBeDisabled();
+    expect(mockUpdateOrderStatus).toHaveBeenCalledOnce();
+    expect(mockUpdateOrderStatus).toHaveBeenCalledWith(order.id, 'ready', 'completed');
+    resolveUpdate({ id: order.id, status: 'completed', payment_status: 'paid' });
+    expect(await screen.findByRole('status')).toHaveTextContent('Status diubah menjadi Selesai');
+    expect(await screen.findByText('Lunas')).toBeInTheDocument();
+    expect(screen.getByText('Pesanan selesai')).toBeInTheDocument();
+    expect(mockGetOrderDetail).toHaveBeenCalledTimes(2);
+  });
+
+  it('menampilkan galat perubahan dan mengizinkan mencoba lagi', async () => {
+    mockUpdateOrderStatus
+      .mockRejectedValueOnce(new Error('Gagal mengubah status. Periksa koneksi internet kamu.'))
+      .mockResolvedValueOnce({ id: order.id, status: 'ready' });
+
+    renderPage();
+
+    const button = await screen.findByRole('button', { name: 'Tandai siap' });
+    button.click();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Gagal mengubah status.');
+
+    screen.getByRole('button', { name: 'Tandai siap' }).click();
+    expect(await screen.findByRole('status')).toHaveTextContent('Status diubah menjadi Siap');
+    expect(mockUpdateOrderStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it('menampilkan keadaan selesai tanpa tombol status', async () => {
+    mockGetOrderDetail.mockResolvedValue({ ...order, status: 'completed' });
+
+    renderPage();
+
+    expect(await screen.findByText('Pesanan selesai')).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('mengarahkan pelanggan yang membuka URL ke beranda', async () => {

@@ -1,17 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import OrderStatusBadge from '@/components/OrderStatusBadge.jsx';
+import Toast from '@/components/Toast.jsx';
 import { formatDateTime, formatRupiah } from '@/lib/format.js';
-import { orderTypeLabels, paymentMethodLabels, paymentStatusLabels } from '@/lib/labels.js';
+import {
+  orderStatusLabels,
+  orderTypeLabels,
+  paymentMethodLabels,
+  paymentStatusLabels,
+} from '@/lib/labels.js';
+import { updateOrderStatus } from '@/features/dashboard/api.js';
 
 import { getOrderDetail } from './api.js';
 import OrderItemsList from './components/OrderItemsList.jsx';
+import { getNextActionLabel, getNextStatus } from './statusFlow.js';
 
 const NOT_FOUND_MESSAGE = 'Pesanan tidak ditemukan.';
 const FRIENDLY_ERROR_MESSAGE = 'Gagal memuat pesanan. Silakan coba lagi.';
 
-function PageFrame({ children }) {
+function PageFrame({ children, onToastDismiss, toastMessage }) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
       <Link
@@ -21,13 +29,14 @@ function PageFrame({ children }) {
         Kembali ke dashboard
       </Link>
       {children}
+      <Toast message={toastMessage} onDismiss={onToastDismiss} />
     </main>
   );
 }
 
-function LoadingState() {
+function LoadingState({ onToastDismiss, toastMessage }) {
   return (
-    <PageFrame>
+    <PageFrame onToastDismiss={onToastDismiss} toastMessage={toastMessage}>
       <section
         aria-label="Memuat detail pesanan"
         className="mt-4 animate-pulse rounded-xl border border-border bg-surface p-5 sm:p-8"
@@ -41,9 +50,9 @@ function LoadingState() {
   );
 }
 
-function MessageState({ children, action }) {
+function MessageState({ action, children, onToastDismiss, toastMessage }) {
   return (
-    <PageFrame>
+    <PageFrame onToastDismiss={onToastDismiss} toastMessage={toastMessage}>
       <section className="mt-4 rounded-xl border border-border bg-surface p-6 text-center">
         <p role="alert">{children}</p>
         {action}
@@ -58,6 +67,11 @@ export default function OrderDetailPage() {
   const [state, setState] = useState('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [attempt, setAttempt] = useState(0);
+  const [statusError, setStatusError] = useState('');
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const statusUpdateInFlightRef = useRef(false);
+  const dismissToast = useCallback(() => setToastMessage(''), []);
 
   useEffect(() => {
     let active = true;
@@ -86,12 +100,43 @@ export default function OrderDetailPage() {
     };
   }, [attempt, id]);
 
+  async function handleStatusUpdate() {
+    if (statusUpdateInFlightRef.current) return;
+
+    const nextStatus = getNextStatus(order.status);
+    if (!nextStatus) return;
+
+    statusUpdateInFlightRef.current = true;
+    setIsUpdatingStatus(true);
+    setStatusError('');
+
+    try {
+      await updateOrderStatus(order.id, order.status, nextStatus);
+      setToastMessage(`Status diubah menjadi ${orderStatusLabels[nextStatus]}`);
+      setState('loading');
+      setAttempt((currentAttempt) => currentAttempt + 1);
+    } catch (error) {
+      setStatusError(
+        error instanceof Error && error.message
+          ? error.message
+          : 'Gagal mengubah status. Periksa koneksi internet kamu.',
+      );
+    } finally {
+      statusUpdateInFlightRef.current = false;
+      setIsUpdatingStatus(false);
+    }
+  }
+
   if (state === 'loading') {
-    return <LoadingState />;
+    return <LoadingState onToastDismiss={dismissToast} toastMessage={toastMessage} />;
   }
 
   if (state === 'not-found') {
-    return <MessageState>{NOT_FOUND_MESSAGE}</MessageState>;
+    return (
+      <MessageState onToastDismiss={dismissToast} toastMessage={toastMessage}>
+        {NOT_FOUND_MESSAGE}
+      </MessageState>
+    );
   }
 
   if (state === 'error') {
@@ -109,6 +154,8 @@ export default function OrderDetailPage() {
             Coba lagi
           </button>
         }
+        onToastDismiss={dismissToast}
+        toastMessage={toastMessage}
       >
         {errorMessage}
       </MessageState>
@@ -116,8 +163,9 @@ export default function OrderDetailPage() {
   }
 
   const notes = order.notes?.trim();
+  const actionLabel = getNextActionLabel(order.status);
   return (
-    <PageFrame>
+    <PageFrame onToastDismiss={dismissToast} toastMessage={toastMessage}>
       <article className="mt-4 space-y-4">
         <header className="rounded-xl border border-border bg-surface p-5 sm:p-8">
           <h1 className="break-words font-serif text-2xl font-semibold sm:text-3xl">
@@ -194,7 +242,25 @@ export default function OrderDetailPage() {
           aria-label="Area tombol status pesanan"
           className="min-h-20 rounded-xl border border-dashed border-border-control bg-surface/60 p-5"
         >
-          <p className="text-sm text-text-muted">Tombol status pesanan akan tersedia di sini.</p>
+          {statusError && (
+            <p className="mb-3 text-sm text-danger-text" role="alert">
+              {statusError}
+            </p>
+          )}
+          {order.status === 'completed' ? (
+            <p className="text-center font-medium text-text-muted">Pesanan selesai</p>
+          ) : (
+            actionLabel && (
+              <button
+                className="min-h-12 w-full rounded-md bg-primary px-5 font-medium text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isUpdatingStatus}
+                onClick={handleStatusUpdate}
+                type="button"
+              >
+                {isUpdatingStatus ? 'Memproses...' : actionLabel}
+              </button>
+            )
+          )}
         </section>
       </article>
     </PageFrame>
