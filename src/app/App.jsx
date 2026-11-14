@@ -12,6 +12,7 @@ import CartPage from '@/features/cart/CartPage.jsx';
 import CatalogPage from '@/features/catalog/CatalogPage.jsx';
 import MenuDetailPage from '@/features/catalog/MenuDetailPage.jsx';
 import DashboardPage from '@/features/dashboard/DashboardPage.jsx';
+import DashboardOrderPlaceholder from '@/features/dashboard/DashboardOrderPlaceholder.jsx';
 import LoginPage from '@/features/auth/LoginPage.jsx';
 import RegisterPage from '@/features/auth/RegisterPage.jsx';
 import CheckoutPage from '@/features/checkout/CheckoutPage.jsx';
@@ -38,6 +39,7 @@ export default function App() {
                   <Route path="/pesanan/:id" element={<ConfirmationPlaceholder />} />
                   <Route element={<RoleRoute allowedRoles={['owner']} />}>
                     <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/dashboard/pesanan/:id" element={<DashboardOrderPlaceholder />} />
                   </Route>
                 </Route>
                 <Route path="*" element={<NotFoundPage />} />

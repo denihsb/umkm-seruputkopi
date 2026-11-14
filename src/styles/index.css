@@ -19,6 +19,14 @@
   --color-ink: #2b2118;
   --color-text: #2b2118;
   --color-text-muted: #6b5b4e;
+  --color-status-received-bg: #e8eef4;
+  --color-status-received-text: #2f4a63;
+  --color-status-processing-bg: #fff1d6;
+  --color-status-processing-text: #7a4b00;
+  --color-status-ready-bg: #e3f2e6;
+  --color-status-ready-text: #1f5e33;
+  --color-status-completed-bg: #ede7e0;
+  --color-status-completed-text: #5a4a3d;
   --radius-base: 12px;
   --radius-sm: 8px;
   --radius-md: 12px;
