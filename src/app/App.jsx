@@ -14,7 +14,8 @@ import DashboardPage from '@/features/dashboard/DashboardPage.jsx';
 import LoginPage from '@/features/auth/LoginPage.jsx';
 import RegisterPage from '@/features/auth/RegisterPage.jsx';
 import CheckoutPage from '@/features/checkout/CheckoutPage.jsx';
-import PaymentPlaceholderPage from '@/features/checkout/PaymentPlaceholderPage.jsx';
+import ConfirmationPlaceholder from '@/features/checkout/ConfirmationPlaceholder.jsx';
+import PaymentPage from '@/features/checkout/PaymentPage.jsx';
 
 export default function App() {
   return (
@@ -31,7 +32,8 @@ export default function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/akun" element={<AccountPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/checkout/pembayaran" element={<PaymentPlaceholderPage />} />
+                <Route path="/checkout/pembayaran" element={<PaymentPage />} />
+                <Route path="/pesanan/:id" element={<ConfirmationPlaceholder />} />
                 <Route element={<RoleRoute allowedRoles={['owner']} />}>
                   <Route path="/dashboard" element={<DashboardPage />} />
                 </Route>

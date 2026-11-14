@@ -3,7 +3,6 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import CheckoutPage from './CheckoutPage.jsx';
-import PaymentPlaceholderPage from './PaymentPlaceholderPage.jsx';
 
 const { mockUseAuth, mockUseCart } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
@@ -102,41 +101,5 @@ describe('ProtectedRoute checkout redirect', () => {
     );
 
     expect(screen.getByText('Login')).toBeInTheDocument();
-  });
-});
-
-describe('PaymentPlaceholderPage', () => {
-  afterEach(() => cleanup());
-
-  it('menampilkan state tipe pesanan dan catatan', () => {
-    render(
-      <MemoryRouter
-        initialEntries={[
-          {
-            pathname: '/checkout/pembayaran',
-            state: { orderType: 'take_away', notes: 'Jangan terlalu manis' },
-          },
-        ]}
-      >
-        <PaymentPlaceholderPage />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText('Bawa pulang')).toBeInTheDocument();
-    expect(screen.getByText('Jangan terlalu manis')).toBeInTheDocument();
-  });
-  afterEach(() => cleanup());
-
-  it('mengarahkan kembali ke checkout jika tanpa state', () => {
-    render(
-      <MemoryRouter initialEntries={['/checkout/pembayaran']}>
-        <Routes>
-          <Route element={<PaymentPlaceholderPage />} path="/checkout/pembayaran" />
-          <Route element={<p>Checkout</p>} path="/checkout" />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText('Checkout')).toBeInTheDocument();
   });
 });
