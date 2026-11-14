@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "generate-pwa-assets": "pwa-assets-generator",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -29,6 +30,7 @@
     "@tailwindcss/vite": "^4.1.13",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
+    "@vite-pwa/assets-generator": "^2.0.0",
     "@vitejs/plugin-react": "^5.0.2",
     "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
@@ -41,6 +43,7 @@
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.13",
     "vite": "^7.1.5",
+    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^3.2.4"
   }
 }
