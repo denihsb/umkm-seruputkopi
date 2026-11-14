@@ -66,7 +66,7 @@ describe('CheckoutPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('berpindah ke placeholder dengan state checkout yang benar', () => {
+  it('berpindah ke halaman pembayaran dengan state checkout yang benar', () => {
     renderCheckout();
 
     const takeAwayRadio = screen.getByRole('radio', { name: 'Bawa pulang' });
@@ -78,6 +78,18 @@ describe('CheckoutPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lanjut ke pembayaran' }));
 
     expect(screen.queryAllByRole('alert')).toHaveLength(0);
+  });
+
+  it('tidak memindahkan fokus ke catatan saat formulir valid', () => {
+    renderCheckout();
+    const notes = screen.getByLabelText('Catatan untuk barista (opsional)');
+    const focus = vi.spyOn(notes, 'focus');
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Bawa pulang' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lanjut ke pembayaran' }));
+
+    expect(focus).not.toHaveBeenCalled();
+    focus.mockRestore();
   });
 });
 

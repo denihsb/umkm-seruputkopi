@@ -23,7 +23,11 @@ export default function CheckoutPage() {
     const nextErrors = validateCheckoutForm({ orderType, notes });
     setErrors(nextErrors);
 
-    const firstInvalidField = nextErrors.orderType ? orderTypeRef.current : notesRef.current;
+    const firstInvalidField = nextErrors.orderType
+      ? orderTypeRef.current
+      : nextErrors.notes
+        ? notesRef.current
+        : null;
     if (firstInvalidField) {
       firstInvalidField.focus();
       return;
