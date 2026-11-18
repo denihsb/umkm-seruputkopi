@@ -23,7 +23,7 @@ function MenuGridSkeleton() {
   return (
     <div
       aria-label="Memuat daftar menu"
-      className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4"
+      className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 menu-grid"
       role="status"
     >
       {Array.from({ length: 4 }, (_, index) => (
@@ -105,10 +105,52 @@ export default function CatalogPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl space-y-5 p-4 md:p-8">
-      <h1 className="font-serif text-2xl font-semibold text-text md:text-3xl">Menu Seruput</h1>
+    <main className="customer-page catalog-page">
+      <section className="welcome-hero">
+        <div className="hero-copy">
+          <span className="hero-eyebrow">KOPI & CERITA · MEDAN</span>
+          <h1>
+            Secangkir hangat,
+            <br />
+            <em>cerita yang dekat.</em>
+          </h1>
+          <p>Temukan rasa favoritmu dan nikmati momen sederhana bersama Seruput.</p>
+          <a className="hero-cta" href="#daftar-menu">
+            Jelajahi menu <span>↗</span>
+          </a>
+        </div>
+        <div className="hero-art" aria-hidden="true">
+          <span className="hero-orbit orbit-one" />
+          <span className="hero-orbit orbit-two" />
+          <span className="hero-cup">☕</span>
+          <span className="hero-art-caption">
+            BREWED WITH
+            <br />A LITTLE STORY
+          </span>
+        </div>
+        <div className="hero-bottom-line">
+          <span>Freshly brewed</span>
+          <span>•</span>
+          <span>Made with care</span>
+        </div>
+      </section>
+      <div className="availability-note">
+        <span className="availability-dot" /> Buka setiap hari <strong>08.00 – 23.00 WIB</strong>
+      </div>
+      <section className="catalog-intro" id="daftar-menu">
+        <div>
+          <span className="section-kicker">OUR COLLECTION</span>
+          <h2>Menu favorit</h2>
+          <p>Temukan menu yang paling cocok untuk menemani harimu.</p>
+        </div>
+        <span className="menu-count">{menus.length} pilihan</span>
+      </section>
 
-      <form className="relative" onSubmit={(event) => event.preventDefault()} role="search">
+      <form
+        className="relative catalog-search"
+        onSubmit={(event) => event.preventDefault()}
+        role="search"
+      >
         <label className="sr-only" htmlFor="menu-search">
           Cari menu
         </label>
@@ -149,7 +191,7 @@ export default function CatalogPage() {
         )}
       </form>
 
-      <div aria-label="Kategori menu" className="flex flex-wrap gap-2" role="group">
+      <div aria-label="Kategori menu" className="flex flex-wrap gap-2 category-pills" role="group">
         {[{ id: null, name: 'Semua' }, ...categories].map((category) => {
           const isSelected = selectedCategoryId === category.id;
 
@@ -228,7 +270,7 @@ export default function CatalogPage() {
           </p>
         )
       ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 menu-grid">
           {menus.map((menu) => (
             <MenuCard key={menu.id} menu={menu} />
           ))}

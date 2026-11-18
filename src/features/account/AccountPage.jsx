@@ -51,11 +51,11 @@ export default function AccountPage() {
           </p>
         )}
         <div className="mt-8 space-y-3">
-          <Link
-            className="flex h-12 w-full items-center justify-center rounded-xl border border-border-control text-base font-medium text-primary hover:border-primary"
-            to="/"
-          >
-            Jelajahi Menu
+          <Link className="account-action" to="/riwayat">
+            Riwayat Pesanan <span>→</span>
+          </Link>
+          <Link className="account-action secondary" to="/">
+            Jelajahi Menu <span>→</span>
           </Link>
           <button
             className="h-12 w-full rounded-xl border border-danger px-4 text-base font-semibold text-danger-text hover:bg-danger-soft disabled:cursor-not-allowed disabled:opacity-70"

@@ -12,11 +12,14 @@ import CartPage from '@/features/cart/CartPage.jsx';
 import CatalogPage from '@/features/catalog/CatalogPage.jsx';
 import MenuDetailPage from '@/features/catalog/MenuDetailPage.jsx';
 import DashboardPage from '@/features/dashboard/DashboardPage.jsx';
+import MenuManagementPage from '@/features/dashboard/MenuManagementPage.jsx';
+import TransactionsPage from '@/features/dashboard/TransactionsPage.jsx';
 import LoginPage from '@/features/auth/LoginPage.jsx';
 import RegisterPage from '@/features/auth/RegisterPage.jsx';
 import CheckoutPage from '@/features/checkout/CheckoutPage.jsx';
 import ConfirmationPage from '@/features/orders/ConfirmationPage.jsx';
 import OrderDetailPage from '@/features/orders/OrderDetailPage.jsx';
+import OrderHistoryPage from '@/features/orders/OrderHistoryPage.jsx';
 import PaymentPage from '@/features/checkout/PaymentPage.jsx';
 
 export default function App() {
@@ -34,11 +37,14 @@ export default function App() {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route element={<ProtectedRoute />}>
                   <Route path="/akun" element={<AccountPage />} />
+                  <Route path="/riwayat" element={<OrderHistoryPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/checkout/pembayaran" element={<PaymentPage />} />
                   <Route path="/pesanan/:id" element={<ConfirmationPage />} />
                   <Route element={<RoleRoute allowedRoles={['owner']} />}>
                     <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/dashboard/transaksi" element={<TransactionsPage />} />
+                    <Route path="/dashboard/menu" element={<MenuManagementPage />} />
                     <Route path="/dashboard/pesanan/:id" element={<OrderDetailPage />} />
                   </Route>
                 </Route>

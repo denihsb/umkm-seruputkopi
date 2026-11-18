@@ -1,162 +1,225 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import OrderStatusBadge from '@/components/OrderStatusBadge.jsx';
 import { formatDateTime, formatRupiah } from '@/lib/format.js';
-import { orderTypeLabels, paymentMethodLabels, paymentStatusLabels } from '@/lib/labels.js';
+import { getDashboardOverview } from './analyticsApi.js';
 
-import { listOrders } from './api.js';
-
-const PAGE_SIZE = 20;
-
-function OrderSkeleton() {
+function MetricCard({ label, value, note, icon }) {
   return (
-    <div
-      aria-label="Memuat transaksi"
-      className="h-48 animate-pulse rounded-xl border border-border bg-surface"
-    />
-  );
-}
-
-function OrderCard({ order }) {
-  return (
-    <Link
-      className="block rounded-xl border border-border bg-surface p-4 text-xs transition-colors hover:border-primary"
-      to={`/dashboard/pesanan/${order.id}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <strong className="text-sm text-text">{order.orderNumber}</strong>
-        <OrderStatusBadge status={order.status} />
+    <article className="metric-card">
+      <div className="metric-top">
+        <span>{label}</span>
+        <span className="metric-icon" aria-hidden="true">
+          {icon}
+        </span>
       </div>
-      <p className="mt-2 text-text-muted">{formatDateTime(order.createdAt)}</p>
-      <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2">
-        <div>
-          <dt className="text-text-muted">Pelanggan</dt>
-          <dd className="mt-0.5 text-text">{order.customerName || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-text-muted">Tipe pesanan</dt>
-          <dd className="mt-0.5 text-text">
-            {orderTypeLabels[order.orderType] ?? order.orderType}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-text-muted">Metode bayar</dt>
-          <dd className="mt-0.5 text-text">
-            {paymentMethodLabels[order.paymentMethod] ?? order.paymentMethod}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-text-muted">Status bayar</dt>
-          <dd className="mt-0.5 text-text">
-            {paymentStatusLabels[order.paymentStatus] ?? order.paymentStatus}
-          </dd>
-        </div>
-      </dl>
-      <p className="mt-4 text-base font-semibold text-primary">{formatRupiah(order.totalAmount)}</p>
-    </Link>
+      <strong>{value}</strong>
+      <small>{note}</small>
+    </article>
   );
 }
 
 export default function DashboardPage() {
-  const [orders, setOrders] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [period, setPeriod] = useState('7days');
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
-  const requestIdRef = useRef(0);
-  const pageRef = useRef(0);
-
-  async function loadPage(page, append) {
-    const requestId = ++requestIdRef.current;
-    if (append) setLoadingMore(true);
-    else setLoading(true);
-    setError('');
-
-    try {
-      const result = await listOrders({ page, pageSize: PAGE_SIZE });
-      if (requestId !== requestIdRef.current) return;
-      setOrders((current) => (append ? [...current, ...result.orders] : result.orders));
-      setTotal(result.total);
-      pageRef.current = page;
-    } catch (loadError) {
-      if (requestId === requestIdRef.current) setError(loadError.message);
-    } finally {
-      if (requestId === requestIdRef.current) {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    }
-  }
+  const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
-    loadPage(0, false);
-  }, []);
+    let active = true;
+    setLoading(true);
+    setError('');
+    getDashboardOverview(period)
+      .then((result) => {
+        if (active) setData(result);
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [period, refresh]);
 
-  const hasMore = orders.length < total;
-  const showInitialError = Boolean(error) && orders.length === 0;
+  const maxRevenue = useMemo(
+    () => Math.max(1, ...(data?.chartDays ?? []).map((day) => day.revenue)),
+    [data],
+  );
 
   return (
-    <main className="min-h-screen bg-page px-4 py-8">
-      <section className="mx-auto max-w-5xl">
-        <h1 className="text-2xl font-bold text-text">Dashboard</h1>
-        <p className="mt-1 text-sm text-text-muted">Riwayat transaksi</p>
-
-        {loading ? (
-          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <OrderSkeleton />
-            <OrderSkeleton />
-          </div>
-        ) : showInitialError ? (
-          <div className="mt-6 rounded-xl border border-border bg-surface p-6 text-sm">
-            <p role="alert">{error}</p>
+    <main className="admin-main">
+      <div className="admin-page-heading">
+        <div>
+          <span className="section-kicker">OVERVIEW</span>
+          <h1>Dashboard</h1>
+          <p>Ringkasan performa Seruput Kopi</p>
+        </div>
+        <div className="period-switch" aria-label="Pilih periode laporan">
+          {[
+            ['today', 'Hari ini'],
+            ['7days', '7 Hari'],
+            ['all', 'Semua'],
+          ].map(([value, label]) => (
             <button
-              className="mt-4 min-h-11 rounded-md border border-primary px-4 font-medium text-primary hover:bg-primary-soft"
+              aria-pressed={period === value}
+              className={period === value ? 'selected' : ''}
+              key={value}
+              onClick={() => setPeriod(value)}
               type="button"
-              onClick={() => loadPage(0, false)}
             >
-              Coba lagi
+              {label}
             </button>
-          </div>
-        ) : orders.length === 0 ? (
-          <p className="mt-6 rounded-xl border border-border bg-surface p-6 text-center text-sm text-text-muted">
-            Belum ada transaksi.
-          </p>
-        ) : (
-          <>
-            <p aria-live="polite" className="mt-6 text-xs text-text-muted" role="status">
-              Menampilkan {orders.length} dari {total} transaksi
-            </p>
-            <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {orders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-            </div>
-            {error && (
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4 text-sm">
-                <p role="alert">{error}</p>
-                <button
-                  className="min-h-11 rounded-md border border-primary px-4 font-medium text-primary hover:bg-primary-soft"
-                  type="button"
-                  onClick={() => loadPage(pageRef.current + 1, true)}
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <div className="admin-alert" role="alert">
+          <span>{error}</span>
+          <button onClick={() => setRefresh((value) => value + 1)} type="button">
+            Muat ulang
+          </button>
+        </div>
+      )}
+      {loading ? (
+        <div className="admin-loading-grid" aria-label="Memuat ringkasan">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+      ) : data ? (
+        <>
+          <section className="metric-grid" aria-label="Ringkasan penjualan">
+            <MetricCard
+              icon="↗"
+              label="Total Penjualan"
+              value={formatRupiah(data.revenue)}
+              note={data.periodLabel}
+            />
+            <MetricCard
+              icon="▣"
+              label="Jumlah Pesanan"
+              value={data.totalOrders.toLocaleString('id-ID')}
+              note="Pesanan pada periode ini"
+            />
+            <MetricCard
+              icon="◷"
+              label="Rata-rata Pesanan"
+              value={formatRupiah(data.average)}
+              note="Nilai rata-rata transaksi"
+            />
+            <MetricCard
+              icon="◌"
+              label="Belum Lunas"
+              value={formatRupiah(data.unpaid)}
+              note="Menunggu pembayaran"
+            />
+          </section>
+          <div className="dashboard-grid">
+            <div className="dashboard-main-column">
+              <section className="admin-panel sales-panel">
+                <div className="panel-heading">
+                  <div>
+                    <h2>Penjualan 7 Hari Terakhir</h2>
+                    <p>Pergerakan omzet harian</p>
+                  </div>
+                  <span className="panel-tag">IDR</span>
+                </div>
+                <div
+                  className="sales-chart"
+                  role="img"
+                  aria-label="Grafik penjualan tujuh hari terakhir"
                 >
-                  Coba lagi
-                </button>
+                  {data.chartDays.map((day) => (
+                    <div className="chart-column" key={day.date}>
+                      <span className="chart-value">
+                        {day.revenue ? `${Math.round(day.revenue / 1000)}rb` : '0'}
+                      </span>
+                      <div className="chart-track">
+                        <span
+                          style={{
+                            height: `${Math.max(day.revenue ? 5 : 1, (day.revenue / maxRevenue) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                      <small>{day.label}</small>
+                    </div>
+                  ))}
+                </div>
+                <div className="chart-footnote">
+                  Grafik menampilkan nilai penjualan dari transaksi yang tercatat.
+                </div>
+              </section>
+
+              <section className="admin-panel top-products-panel">
+                <div className="panel-heading">
+                  <div>
+                    <h2>Menu Terlaris</h2>
+                    <p>Produk dengan jumlah penjualan tertinggi</p>
+                  </div>
+                  <span className="panel-tag">TOP 3</span>
+                </div>
+                {data.topProducts.length ? (
+                  <div className="top-products-list">
+                    {data.topProducts.map((item, index) => (
+                      <div className="top-product-row" key={item.name}>
+                        <span className="rank-number">0{index + 1}</span>
+                        <strong>{item.name}</strong>
+                        <span>{item.quantity} terjual</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="empty-admin-state">
+                    Belum ada data penjualan menu pada periode ini.
+                  </p>
+                )}
+              </section>
+            </div>
+
+            <section className="admin-panel recent-orders-panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>Pesanan Terbaru</h2>
+                  <p>Aktivitas pesanan terakhir</p>
+                </div>
+                <Link to="/dashboard/transaksi">Lihat semua</Link>
               </div>
-            )}
-            {hasMore && !error && (
-              <button
-                className="mt-6 min-h-11 rounded-md border border-primary px-4 text-sm font-medium text-primary hover:bg-primary-soft disabled:opacity-60"
-                disabled={loadingMore}
-                type="button"
-                onClick={() => loadPage(pageRef.current + 1, true)}
-              >
-                {loadingMore ? 'Memuat...' : 'Muat lagi'}
-              </button>
-            )}
-          </>
-        )}
-      </section>
+              {data.recentOrders.length ? (
+                <div className="recent-order-list">
+                  {data.recentOrders.map((order) => (
+                    <Link
+                      className="recent-order-card"
+                      key={order.id}
+                      to={`/dashboard/pesanan/${order.id}`}
+                    >
+                      <div className="recent-order-line">
+                        <strong>{order.orderNumber}</strong>
+                        <b>{formatRupiah(order.totalAmount)}</b>
+                      </div>
+                      <div className="recent-order-customer">
+                        {order.customerName} · {formatDateTime(order.createdAt)}
+                      </div>
+                      <div className="recent-order-status">
+                        <OrderStatusBadge status={order.status} />
+                        <span>Detail →</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-admin-state">Belum ada pesanan masuk.</p>
+              )}
+            </section>
+          </div>
+        </>
+      ) : null}
     </main>
   );
 }

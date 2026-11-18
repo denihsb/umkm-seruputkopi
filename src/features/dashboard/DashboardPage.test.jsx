@@ -1,39 +1,48 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import DashboardPage from './DashboardPage.jsx';
 
-const { mockListOrders } = vi.hoisted(() => ({ mockListOrders: vi.fn() }));
+const { mockGetDashboardOverview } = vi.hoisted(() => ({ mockGetDashboardOverview: vi.fn() }));
 
-vi.mock('./api.js', () => ({
-  listOrders: mockListOrders,
-}));
+vi.mock('./analyticsApi.js', () => ({ getDashboardOverview: mockGetDashboardOverview }));
 
-const orders = [
-  {
-    id: 'order-1',
-    orderNumber: 'SRP-001',
-    orderType: 'take_away',
-    paymentMethod: 'cash',
-    paymentStatus: 'paid',
-    status: 'received',
-    totalAmount: 27000,
-    createdAt: '2026-11-14T06:45:00Z',
-    customerName: 'Deni',
-  },
-  {
-    id: 'order-2',
-    orderNumber: 'SRP-002',
-    orderType: 'dine_in',
-    paymentMethod: 'qris_sim',
-    paymentStatus: 'pending',
-    status: 'processing',
-    totalAmount: 35000,
-    createdAt: '2026-11-13T06:45:00Z',
-    customerName: 'Sari',
-  },
-];
+const overview = {
+  totalOrders: 2,
+  revenue: 62000,
+  average: 31000,
+  unpaid: 35000,
+  recentOrders: [
+    {
+      id: 'order-1',
+      orderNumber: 'SRP-001',
+      customerName: 'Deni',
+      totalAmount: 27000,
+      status: 'received',
+      createdAt: '2026-11-14T06:45:00Z',
+    },
+    {
+      id: 'order-2',
+      orderNumber: 'SRP-002',
+      customerName: 'Sari',
+      totalAmount: 35000,
+      status: 'processing',
+      createdAt: '2026-11-13T06:45:00Z',
+    },
+  ],
+  topProducts: [{ name: 'Kopi Susu Seruput', quantity: 5, revenue: 90000 }],
+  chartDays: [
+    { date: '2026-11-10', label: 'Sen', revenue: 0 },
+    { date: '2026-11-11', label: 'Sel', revenue: 0 },
+    { date: '2026-11-12', label: 'Rab', revenue: 0 },
+    { date: '2026-11-13', label: 'Kam', revenue: 35000 },
+    { date: '2026-11-14', label: 'Jum', revenue: 27000 },
+    { date: '2026-11-15', label: 'Sab', revenue: 0 },
+    { date: '2026-11-16', label: 'Min', revenue: 0 },
+  ],
+  periodLabel: '7 hari terakhir',
+};
 
 function renderPage() {
   return render(
@@ -44,78 +53,34 @@ function renderPage() {
 }
 
 describe('DashboardPage', () => {
-  beforeEach(() => mockListOrders.mockReset());
+  beforeEach(() => {
+    mockGetDashboardOverview.mockReset();
+    mockGetDashboardOverview.mockResolvedValue(overview);
+  });
 
-  it('menampilkan transaksi berurutan dan tautan detail', async () => {
-    mockListOrders.mockResolvedValue({ orders, total: 2 });
-
+  it('menampilkan metrik ringkasan penjualan', async () => {
     renderPage();
+    expect(await screen.findByText('Total Penjualan')).toBeInTheDocument();
+    expect(screen.getByText('Jumlah Pesanan')).toBeInTheDocument();
+    expect(screen.getByText('Rata-rata Pesanan')).toBeInTheDocument();
+    expect(screen.getByText('Belum Lunas')).toBeInTheDocument();
+    expect(screen.getByText('Rp62.000')).toBeInTheDocument();
+  });
 
+  it('menampilkan pesanan terbaru dan tautan detail', async () => {
+    renderPage();
     expect(await screen.findByText('SRP-001')).toBeInTheDocument();
     expect(screen.getByText('SRP-002')).toBeInTheDocument();
-    expect(screen.getByText('Diterima')).toBeInTheDocument();
-    expect(screen.getByText('Bawa pulang')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /SRP-001/ })).toHaveAttribute(
       'href',
       '/dashboard/pesanan/order-1',
     );
   });
 
-  it('menambahkan halaman berikutnya dan menyembunyikan Muat lagi saat selesai', async () => {
-    mockListOrders
-      .mockResolvedValueOnce({ orders: [orders[0]], total: 2 })
-      .mockResolvedValueOnce({ orders: [orders[1]], total: 2 });
-
+  it('mengganti periode laporan saat filter dipilih', async () => {
     renderPage();
-
-    await screen.findByText('SRP-001');
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Muat lagi' })).toBeInTheDocument(),
-    );
-    screen.getByRole('button', { name: 'Muat lagi' }).click();
-
-    expect(await screen.findByText('SRP-002')).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.queryByRole('button', { name: 'Muat lagi' })).not.toBeInTheDocument(),
-    );
-  });
-
-  it('menampilkan loading', async () => {
-    let resolveRequest;
-    mockListOrders.mockReturnValue(
-      new Promise((resolve) => {
-        resolveRequest = resolve;
-      }),
-    );
-    renderPage();
-    expect(screen.getAllByLabelText('Memuat transaksi')).toHaveLength(2);
-    resolveRequest({ orders: [], total: 0 });
-    await screen.findByText('Belum ada transaksi.');
-  });
-
-  it('menampilkan galat dan dapat mencoba lagi', async () => {
-    mockListOrders.mockRejectedValueOnce(
-      new Error('Gagal memuat transaksi. Periksa koneksi internet kamu.'),
-    );
-    renderPage();
-    expect(await screen.findByRole('alert')).toHaveTextContent('Gagal memuat transaksi');
-    mockListOrders.mockResolvedValueOnce({ orders: [], total: 0 });
-    screen.getByRole('button', { name: 'Coba lagi' }).click();
-    expect(await screen.findByText('Belum ada transaksi.')).toBeInTheDocument();
-  });
-
-  it('menyisakan transaksi saat pemuatan halaman berikutnya gagal', async () => {
-    mockListOrders
-      .mockResolvedValueOnce({ orders: [orders[0]], total: 2 })
-      .mockRejectedValueOnce(new Error('Gagal memuat transaksi. Periksa koneksi internet kamu.'));
-
-    renderPage();
-    await waitFor(() =>
-      expect(document.querySelector('a[href="/dashboard/pesanan/order-1"]')).toBeInTheDocument(),
-    );
-    screen.getByRole('button', { name: 'Muat lagi' }).click();
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('Gagal memuat transaksi');
-    expect(document.querySelector('a[href="/dashboard/pesanan/order-1"]')).toBeInTheDocument();
+    await screen.findByText('Menu Terlaris');
+    screen.getByRole('button', { name: 'Hari ini' }).click();
+    expect(mockGetDashboardOverview).toHaveBeenLastCalledWith('today');
   });
 });

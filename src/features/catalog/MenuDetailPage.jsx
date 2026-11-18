@@ -149,7 +149,7 @@ export default function MenuDetailPage({ onAdd }) {
   }
 
   return (
-    <main className="mx-auto max-w-5xl p-4 pb-32 md:p-8 md:pb-8">
+    <main className="customer-page detail-page mx-auto max-w-5xl p-4 pb-32 md:p-8 md:pb-8">
       <Link
         className="mb-6 inline-flex min-h-11 items-center text-primary hover:text-primary-hover"
         to="/"

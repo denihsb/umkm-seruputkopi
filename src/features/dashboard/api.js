@@ -19,19 +19,37 @@ export function mapOrderRow(row) {
   };
 }
 
-export async function listOrders({ page = 0, pageSize = 20 } = {}) {
+export async function listOrders({
+  page = 0,
+  pageSize = 20,
+  keyword = '',
+  status = '',
+  fromDate = '',
+  toDate = '',
+} = {}) {
   const from = page * pageSize;
   const to = from + pageSize - 1;
 
   try {
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('orders')
       .select(
         'id, order_number, order_type, payment_method, payment_status, status, total_amount, created_at, customer:profiles(full_name)',
         { count: 'exact' },
       )
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      .order('created_at', { ascending: false });
+
+    if (keyword) query = query.ilike('order_number', `%${keyword.replace(/[\\%_]/g, '\\$&')}%`);
+    if (status) query = query.eq('status', status);
+    if (fromDate) query = query.gte('created_at', new Date(`${fromDate}T00:00:00`).toISOString());
+    if (toDate) {
+      const nextDay = new Date(`${toDate}T00:00:00`);
+      nextDay.setDate(nextDay.getDate() + 1);
+      query = query.lt('created_at', nextDay.toISOString());
+    }
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
     return { orders: (data ?? []).map(mapOrderRow), total: count ?? 0 };
