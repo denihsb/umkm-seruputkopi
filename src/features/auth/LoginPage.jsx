@@ -20,9 +20,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user && !isSubmitting) {
-      navigate('/', { replace: true });
+      navigate(role === 'owner' ? '/dashboard' : '/', { replace: true });
     }
-  }, [isSubmitting, loading, navigate, user]);
+  }, [isSubmitting, loading, navigate, role, user]);
 
   function updateValue(event) {
     const { name, value } = event.target;
@@ -48,8 +48,10 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     try {
-      await signIn(values.email.trim(), values.password);
-      navigate(getPostLoginPath(role, location.state?.from ?? '/'), { replace: true });
+      const result = await signIn(values.email.trim(), values.password);
+      navigate(getPostLoginPath(result?.role ?? role, location.state?.from ?? '/'), {
+        replace: true,
+      });
     } catch (error) {
       setServerError(error.message);
     } finally {

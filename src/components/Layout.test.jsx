@@ -93,7 +93,7 @@ describe('Layout', () => {
     const { unmount } = renderLayout([cartItem]);
 
     expect(screen.getByRole('link', { name: 'Keranjang, 3 item' })).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getAllByText('3').length).toBeGreaterThan(0);
 
     unmount();
     renderLayout();

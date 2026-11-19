@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import DashboardPage from './DashboardPage.jsx';
 
@@ -58,6 +58,10 @@ describe('DashboardPage', () => {
     mockGetDashboardOverview.mockResolvedValue(overview);
   });
 
+  afterEach(() => {
+    cleanup();
+  });
+
   it('menampilkan metrik ringkasan penjualan', async () => {
     renderPage();
     expect(await screen.findByText('Total Penjualan')).toBeInTheDocument();
@@ -80,7 +84,9 @@ describe('DashboardPage', () => {
   it('mengganti periode laporan saat filter dipilih', async () => {
     renderPage();
     await screen.findByText('Menu Terlaris');
-    screen.getByRole('button', { name: 'Hari ini' }).click();
-    expect(mockGetDashboardOverview).toHaveBeenLastCalledWith('today');
+    fireEvent.click(screen.getByRole('button', { name: 'Hari ini' }));
+    await waitFor(() => {
+      expect(mockGetDashboardOverview).toHaveBeenLastCalledWith('today');
+    });
   });
 });

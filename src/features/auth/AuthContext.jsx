@@ -102,6 +102,24 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const signIn = useCallback(async (email, password) => {
+    const data = await signInRequest(email, password);
+    const nextUser = data?.user ?? null;
+
+    if (isMountedRef.current) {
+      setUser(nextUser);
+      setProfile(null);
+
+      if (nextUser) {
+        const nextProfile = await fetchProfile(nextUser.id);
+        if (isMountedRef.current) setProfile(nextProfile);
+        return { ...data, profile: nextProfile, role: nextProfile.role };
+      }
+    }
+
+    return { ...data, role: null };
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -109,10 +127,10 @@ export function AuthProvider({ children }) {
       role: profile?.role ?? null,
       loading,
       signUp: signUpRequest,
-      signIn: signInRequest,
+      signIn,
       signOut,
     }),
-    [loading, profile, signOut, user],
+    [loading, profile, signIn, signOut, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
