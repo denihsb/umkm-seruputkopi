@@ -13,7 +13,7 @@ import CatalogPage from '@/features/catalog/CatalogPage.jsx';
 import MenuDetailPage from '@/features/catalog/MenuDetailPage.jsx';
 import DashboardPage from '@/features/dashboard/DashboardPage.jsx';
 import MenuManagementPage from '@/features/dashboard/MenuManagementPage.jsx';
-import TransactionsPage from '@/features/dashboard/TransactionsPage.jsx';
+import TransactionsPage from '@/features/dashboard/TransactionPage.jsx';
 import LoginPage from '@/features/auth/LoginPage.jsx';
 import RegisterPage from '@/features/auth/RegisterPage.jsx';
 import CheckoutPage from '@/features/checkout/CheckoutPage.jsx';

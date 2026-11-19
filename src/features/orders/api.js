@@ -31,3 +31,43 @@ export async function getOrderDetail(id) {
     throw new Error(FRIENDLY_ERROR);
   }
 }
+
+export async function listCustomerOrders({ page = 0, pageSize = 20 } = {}) {
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    const userId = userData?.user?.id;
+    if (!userId) throw new Error('Sesi pengguna tidak ditemukan.');
+
+    const { data, error, count } = await supabase
+      .from('orders')
+      .select(
+        'id, order_number, order_type, payment_method, payment_status, status, total_amount, created_at',
+        { count: 'exact' },
+      )
+      .eq('customer_id', userId)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+
+    return {
+      orders: (data ?? []).map((row) => ({
+        id: row.id,
+        orderNumber: row.order_number,
+        orderType: row.order_type,
+        paymentMethod: row.payment_method,
+        paymentStatus: row.payment_status,
+        status: row.status,
+        totalAmount: row.total_amount,
+        createdAt: row.created_at,
+      })),
+      total: count ?? 0,
+    };
+  } catch {
+    throw new Error(FRIENDLY_ERROR);
+  }
+}
