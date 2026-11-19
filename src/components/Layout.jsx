@@ -137,6 +137,15 @@ export default function Layout() {
               <strong>Panel Pemilik</strong>
             </div>
             <div className="admin-topbar-actions">
+              <Link
+                aria-label="Buka halaman pelanggan"
+                className="admin-mobile-customer-link"
+                to="/"
+                title="Buka halaman pelanggan"
+              >
+                <Icon name="home" size={18} />
+                <span>Beranda</span>
+              </Link>
               <div className="admin-user">
                 <span className="avatar-circle">
                   {(profile?.full_name || 'O').slice(0, 1).toUpperCase()}

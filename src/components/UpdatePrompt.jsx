@@ -13,7 +13,7 @@ export default function UpdatePrompt() {
     <>
       {needRefresh && (
         <div
-          className="fixed inset-x-4 bottom-[env(safe-area-inset-bottom)] z-30 rounded-lg bg-primary p-4 text-white shadow-lg"
+          className="fixed inset-x-4 bottom-[calc(74px+env(safe-area-inset-bottom))] z-[60] rounded-lg bg-primary p-4 text-white shadow-lg md:bottom-4 md:z-30"
           role="status"
         >
           <p className="font-medium">Versi baru tersedia</p>

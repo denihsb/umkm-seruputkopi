@@ -93,6 +93,22 @@ describe('Layout', () => {
     );
   });
 
+  it('menampilkan tautan kembali ke halaman pelanggan dari dashboard owner', () => {
+    mocks.useAuth.mockReturnValue({
+      profile: { full_name: 'Deni Pemilik' },
+      role: 'owner',
+      signOut: mocks.signOut,
+      user: { id: 'owner-1', email: 'denianugra8@gmail.com' },
+    });
+
+    renderLayout([], '/dashboard');
+
+    expect(screen.getByRole('link', { name: 'Buka halaman pelanggan' })).toHaveAttribute(
+      'href',
+      '/',
+    );
+  });
+
   it('menampilkan galat dan membiarkan pengguna tetap login jika signOut gagal', async () => {
     mocks.signOut.mockRejectedValue(new Error('Gagal keluar. Coba lagi.'));
     renderLayout();

@@ -36,6 +36,9 @@ describe('UpdatePrompt', () => {
     render(<UpdatePrompt />);
 
     expect(screen.getByText('Versi baru tersedia')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveClass(
+      'bottom-[calc(74px+env(safe-area-inset-bottom))]',
+    );
   });
 
   it('memuat ulang saat tombol Muat ulang ditekan', () => {
