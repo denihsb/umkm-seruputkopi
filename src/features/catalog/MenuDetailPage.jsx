@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import QuantityStepper from '@/components/QuantityStepper.jsx';
 import Toast from '@/components/Toast.jsx';
 import { formatRupiah } from '@/lib/format.js';
+import { getMenuIllustration } from '@/lib/menuImages.js';
 import { useCart } from '@/features/cart/useCart.js';
 
 import { getMenuDetail } from './api.js';
@@ -34,7 +35,10 @@ function MenuDetailSkeleton() {
 }
 
 function MenuImage({ menu }) {
-  if (!menu.imageUrl) {
+  const fallbackImage = getMenuIllustration(menu.name);
+  const [imageSource, setImageSource] = useState(menu.imageUrl || fallbackImage);
+
+  if (!imageSource) {
     return (
       <div
         aria-label={`Gambar ${menu.name} belum tersedia`}
@@ -50,7 +54,11 @@ function MenuImage({ menu }) {
     <img
       alt={menu.name}
       className="aspect-[4/3] w-full rounded-xl object-cover"
-      src={menu.imageUrl}
+      onError={() => {
+        if (imageSource !== fallbackImage && fallbackImage) setImageSource(fallbackImage);
+        else setImageSource('');
+      }}
+      src={imageSource}
     />
   );
 }
