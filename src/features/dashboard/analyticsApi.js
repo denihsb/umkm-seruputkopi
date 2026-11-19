@@ -6,6 +6,14 @@ function startOfDay(date) {
   return value;
 }
 
+function toLocalDateKey(date) {
+  const value = new Date(date);
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export async function getDashboardOverview(period = '7days') {
   const now = new Date();
   let startDate = null;
@@ -72,10 +80,8 @@ export async function getDashboardOverview(period = '7days') {
   const chartDays = Array.from({ length: 7 }, (_, index) => {
     const day = startOfDay(now);
     day.setDate(day.getDate() - (6 - index));
-    const key = day.toLocaleDateString('en-CA');
-    const dayOrders = safeChartOrders.filter(
-      (order) => new Date(order.created_at).toLocaleDateString('en-CA') === key,
-    );
+    const key = toLocalDateKey(day);
+    const dayOrders = safeChartOrders.filter((order) => toLocalDateKey(order.created_at) === key);
     return {
       label: day.toLocaleDateString('id-ID', { weekday: 'short' }),
       date: key,

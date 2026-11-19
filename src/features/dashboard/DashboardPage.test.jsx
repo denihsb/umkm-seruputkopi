@@ -89,4 +89,16 @@ describe('DashboardPage', () => {
       expect(mockGetDashboardOverview).toHaveBeenLastCalledWith('today');
     });
   });
+
+  it('menampilkan tinggi batang untuk nilai penjualan harian', async () => {
+    renderPage();
+    await screen.findByRole('img', { name: 'Grafik penjualan tujuh hari terakhir' });
+    const chartColumns = document.querySelectorAll('.chart-column');
+    const revenueBars = document.querySelectorAll('.chart-track > span');
+
+    expect(chartColumns).toHaveLength(7);
+    expect(revenueBars).toHaveLength(7);
+    expect(revenueBars[3]).toHaveStyle({ height: '100%' });
+    expect(Number.parseFloat(revenueBars[4].style.height)).toBeCloseTo(77.14, 2);
+  });
 });
