@@ -6,7 +6,11 @@ import { getMenuIllustration } from '@/lib/menuImages.js';
 
 export default function MenuCard({ menu }) {
   const fallbackImage = getMenuIllustration(menu.name);
-  const [imageSource, setImageSource] = useState(menu.imageUrl || fallbackImage);
+  const initialImage =
+    fallbackImage && menu.imageUrl?.startsWith('/menu/') && menu.imageUrl.endsWith('.svg')
+      ? fallbackImage
+      : menu.imageUrl || fallbackImage;
+  const [imageSource, setImageSource] = useState(initialImage);
 
   return (
     <Link

@@ -37,17 +37,17 @@ describe('MenuCard', () => {
 
     expect(screen.getByRole('img', { name: 'Kopi Susu Seruput' })).toHaveAttribute(
       'src',
-      '/menu/kopi-susu-seruput.svg',
+      '/menu/kopi-susu-seruput.jpg',
     );
   });
 
   it.each([
-    ['Americano', '/menu/americano.svg'],
-    ['Cafe Latte', '/menu/latte.svg'],
-    ['Kopi Susu Gula Aren', '/menu/kopi-susu-seruput.svg'],
-    ['Kopi Tubruk', '/menu/kopi-tubruk.svg'],
-    ['Mocha', '/menu/mocha.svg'],
-    ['Es Teh', '/menu/es-teh-lemon.svg'],
+    ['Americano', '/menu/americano.jpg'],
+    ['Cafe Latte', '/menu/cafe-latte.jpg'],
+    ['Kopi Susu Gula Aren', '/menu/kopi-susu-gula-aren.jpg'],
+    ['Kopi Tubruk', '/menu/kopi-tubruk.jpg'],
+    ['Mocha', '/menu/mocha.jpg'],
+    ['Es Teh', '/menu/es-teh.jpg'],
   ])('memetakan nama menu lama %s ke ilustrasi lokal', (name, imageUrl) => {
     render(
       <MemoryRouter>
