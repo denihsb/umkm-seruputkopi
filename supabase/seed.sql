@@ -95,6 +95,40 @@ from _seed_menu s
 join public.categories c on c.name = s.category
 where not exists (select 1 from public.menus m where m.name = s.name);
 
+-- Pasang ilustrasi lokal pada seluruh menu seed, termasuk menu yang sudah ada.
+update public.menus
+set image_url = case name
+  when 'Kopi Susu Seruput' then '/menu/kopi-susu-seruput.svg'
+  when 'Americano' then '/menu/americano.svg'
+  when 'Latte' then '/menu/latte.svg'
+  when 'Cappuccino' then '/menu/cappuccino.svg'
+  when 'Es Kopi Gula Aren' then '/menu/es-kopi-gula-aren.svg'
+  when 'Mocha' then '/menu/mocha.svg'
+  when 'Kopi Tubruk' then '/menu/kopi-tubruk.svg'
+  when 'Coklat Dingin' then '/menu/coklat-dingin.svg'
+  when 'Matcha Latte' then '/menu/matcha-latte.svg'
+  when 'Red Velvet Latte' then '/menu/red-velvet-latte.svg'
+  when 'Taro Latte' then '/menu/taro-latte.svg'
+  when 'Susu Madu' then '/menu/susu-madu.svg'
+  when 'Teh Tarik' then '/menu/teh-tarik.svg'
+  when 'Es Teh Lemon' then '/menu/es-teh-lemon.svg'
+  when 'Teh Melati' then '/menu/teh-melati.svg'
+  when 'Teh Leci' then '/menu/teh-leci.svg'
+  when 'Roti Bakar Coklat Keju' then '/menu/roti-bakar-coklat-keju.svg'
+  when 'Kentang Goreng' then '/menu/kentang-goreng.svg'
+  when 'Pisang Goreng Madu' then '/menu/pisang-goreng-madu.svg'
+  when 'Brownies Coklat' then '/menu/brownies-coklat.svg'
+  else image_url
+end
+where name in (
+  'Kopi Susu Seruput', 'Americano', 'Latte', 'Cappuccino',
+  'Es Kopi Gula Aren', 'Mocha', 'Kopi Tubruk', 'Coklat Dingin',
+  'Matcha Latte', 'Red Velvet Latte', 'Taro Latte', 'Susu Madu',
+  'Teh Tarik', 'Es Teh Lemon', 'Teh Melati', 'Teh Leci',
+  'Roti Bakar Coklat Keju', 'Kentang Goreng', 'Pisang Goreng Madu',
+  'Brownies Coklat'
+);
+
 -- ---------------------------------------------------------------------
 -- 5. Varian per menu (dilewati bila kombinasi menu, grup, nama sudah ada)
 -- ---------------------------------------------------------------------
