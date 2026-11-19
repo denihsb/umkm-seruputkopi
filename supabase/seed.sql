@@ -101,8 +101,10 @@ set image_url = case name
   when 'Kopi Susu Seruput' then '/menu/kopi-susu-seruput.svg'
   when 'Americano' then '/menu/americano.svg'
   when 'Latte' then '/menu/latte.svg'
+  when 'Cafe Latte' then '/menu/latte.svg'
   when 'Cappuccino' then '/menu/cappuccino.svg'
   when 'Es Kopi Gula Aren' then '/menu/es-kopi-gula-aren.svg'
+  when 'Kopi Susu Gula Aren' then '/menu/kopi-susu-seruput.svg'
   when 'Mocha' then '/menu/mocha.svg'
   when 'Kopi Tubruk' then '/menu/kopi-tubruk.svg'
   when 'Coklat Dingin' then '/menu/coklat-dingin.svg'
@@ -111,6 +113,7 @@ set image_url = case name
   when 'Taro Latte' then '/menu/taro-latte.svg'
   when 'Susu Madu' then '/menu/susu-madu.svg'
   when 'Teh Tarik' then '/menu/teh-tarik.svg'
+  when 'Es Teh' then '/menu/es-teh-lemon.svg'
   when 'Es Teh Lemon' then '/menu/es-teh-lemon.svg'
   when 'Teh Melati' then '/menu/teh-melati.svg'
   when 'Teh Leci' then '/menu/teh-leci.svg'
@@ -122,9 +125,10 @@ set image_url = case name
 end
 where name in (
   'Kopi Susu Seruput', 'Americano', 'Latte', 'Cappuccino',
-  'Es Kopi Gula Aren', 'Mocha', 'Kopi Tubruk', 'Coklat Dingin',
+  'Cafe Latte', 'Es Kopi Gula Aren', 'Kopi Susu Gula Aren',
+  'Mocha', 'Kopi Tubruk', 'Coklat Dingin',
   'Matcha Latte', 'Red Velvet Latte', 'Taro Latte', 'Susu Madu',
-  'Teh Tarik', 'Es Teh Lemon', 'Teh Melati', 'Teh Leci',
+  'Teh Tarik', 'Es Teh', 'Es Teh Lemon', 'Teh Melati', 'Teh Leci',
   'Roti Bakar Coklat Keju', 'Kentang Goreng', 'Pisang Goreng Madu',
   'Brownies Coklat'
 );

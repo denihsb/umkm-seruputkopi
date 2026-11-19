@@ -40,4 +40,21 @@ describe('MenuCard', () => {
       '/menu/kopi-susu-seruput.svg',
     );
   });
+
+  it.each([
+    ['Americano', '/menu/americano.svg'],
+    ['Cafe Latte', '/menu/latte.svg'],
+    ['Kopi Susu Gula Aren', '/menu/kopi-susu-seruput.svg'],
+    ['Kopi Tubruk', '/menu/kopi-tubruk.svg'],
+    ['Mocha', '/menu/mocha.svg'],
+    ['Es Teh', '/menu/es-teh-lemon.svg'],
+  ])('memetakan nama menu lama %s ke ilustrasi lokal', (name, imageUrl) => {
+    render(
+      <MemoryRouter>
+        <MenuCard menu={{ id: 1, name, basePrice: 18000, imageUrl: '' }} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('img', { name })).toHaveAttribute('src', imageUrl);
+  });
 });

@@ -195,6 +195,17 @@ export default function Layout() {
           </Link>
           {user ? (
             <>
+              {role === 'owner' && (
+                <Link
+                  aria-label="Dashboard Pemilik"
+                  className="header-dashboard-link"
+                  title="Dashboard Pemilik"
+                  to="/dashboard"
+                >
+                  <Icon name="chart" size={18} />
+                  <span>Dashboard</span>
+                </Link>
+              )}
               <Link
                 aria-label={profile?.full_name || 'Profil saya'}
                 className="header-icon-link"
@@ -225,11 +236,20 @@ export default function Layout() {
         </p>
       )}
       <Outlet />
-      <nav className="customer-bottom-nav" aria-label="Navigasi bawah">
+      <nav
+        className={`customer-bottom-nav${role === 'owner' ? ' owner-bottom-nav' : ''}`}
+        aria-label="Navigasi bawah"
+      >
         <NavLink to="/" end>
           <Icon name="home" />
           <span>Beranda</span>
         </NavLink>
+        {role === 'owner' && (
+          <NavLink to="/dashboard">
+            <Icon name="chart" />
+            <span>Dashboard</span>
+          </NavLink>
+        )}
         <NavLink to="/keranjang">
           <Icon name="cart" />
           <span>Keranjang</span>

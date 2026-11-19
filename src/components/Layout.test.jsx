@@ -30,10 +30,10 @@ const cartItem = {
   selectedOptions: [],
 };
 
-function renderLayout(initialItems = []) {
+function renderLayout(initialItems = [], initialPath = '/dashboard') {
   return render(
     <CartProvider initialItems={initialItems}>
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <MemoryRouter initialEntries={[initialPath]}>
         <Routes>
           <Route element={<Layout />}>
             <Route element={<CurrentPath />} path="/dashboard" />
@@ -63,7 +63,7 @@ describe('Layout', () => {
 
   it('memanggil signOut lalu mengarahkan pengguna ke beranda', async () => {
     mocks.signOut.mockResolvedValue();
-    renderLayout();
+    renderLayout([], '/');
 
     fireEvent.click(screen.getByRole('button', { name: 'Keluar' }));
 
@@ -75,6 +75,22 @@ describe('Layout', () => {
     renderLayout();
 
     expect(screen.getByRole('link', { name: 'Dewi' })).toHaveAttribute('href', '/akun');
+  });
+
+  it('menampilkan tautan dashboard pada halaman pelanggan untuk owner', () => {
+    mocks.useAuth.mockReturnValue({
+      profile: { full_name: 'Deni Pemilik' },
+      role: 'owner',
+      signOut: mocks.signOut,
+      user: { id: 'owner-1', email: 'denianugra8@gmail.com' },
+    });
+
+    renderLayout([], '/');
+
+    expect(screen.getAllByRole('link', { name: 'Dashboard Pemilik' })[0]).toHaveAttribute(
+      'href',
+      '/dashboard',
+    );
   });
 
   it('menampilkan galat dan membiarkan pengguna tetap login jika signOut gagal', async () => {

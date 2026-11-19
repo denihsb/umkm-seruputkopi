@@ -210,6 +210,26 @@
     padding: 0 18px;
   }
 
+  .header-dashboard-link {
+    align-items: center;
+    background: var(--color-primary-soft);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-primary);
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+    min-height: 42px;
+    padding: 0 12px;
+    text-decoration: none;
+  }
+
+  .header-dashboard-link:hover {
+    background: var(--color-primary);
+    color: white;
+  }
+
   .header-logout {
     background: transparent;
     cursor: pointer;
@@ -1191,6 +1211,10 @@
     position: fixed;
     right: 0;
     z-index: 50;
+  }
+
+  .customer-bottom-nav.owner-bottom-nav {
+    grid-template-columns: repeat(5, 1fr);
   }
 
   .customer-bottom-nav a {
