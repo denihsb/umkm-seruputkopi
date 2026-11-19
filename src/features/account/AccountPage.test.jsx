@@ -52,6 +52,22 @@ describe('AccountPage', () => {
     expect(screen.getByText('Pelanggan')).toBeInTheDocument();
   });
 
+  it('menampilkan tautan dashboard untuk pemilik', () => {
+    mocks.useAuth.mockReturnValue({
+      profile: { full_name: 'Deni Pemilik' },
+      role: 'owner',
+      signOut: mocks.signOut,
+      user: { email: 'denianugra8@gmail.com' },
+    });
+
+    renderAccountPage();
+
+    expect(screen.getByRole('link', { name: 'Buka Dashboard Pemilik' })).toHaveAttribute(
+      'href',
+      '/dashboard',
+    );
+  });
+
   it('memanggil signOut dan mengarahkan ke beranda', async () => {
     mocks.signOut.mockResolvedValue();
     renderAccountPage();

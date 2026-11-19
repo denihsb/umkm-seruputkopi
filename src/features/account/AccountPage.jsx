@@ -51,10 +51,24 @@ export default function AccountPage() {
           </p>
         )}
         <div className="mt-8 space-y-3">
-          <Link className="account-action" to="/riwayat">
+          {role === 'owner' && (
+            <Link
+              className="flex min-h-12 items-center justify-between rounded-xl bg-primary px-4 font-semibold text-white hover:bg-primary-hover"
+              to="/dashboard"
+            >
+              Buka Dashboard Pemilik <span aria-hidden="true">→</span>
+            </Link>
+          )}
+          <Link
+            className="flex min-h-12 items-center justify-between rounded-xl border border-border px-4 font-medium text-text hover:border-primary"
+            to="/riwayat"
+          >
             Riwayat Pesanan <span>→</span>
           </Link>
-          <Link className="account-action secondary" to="/">
+          <Link
+            className="flex min-h-12 items-center justify-between rounded-xl border border-border px-4 font-medium text-text hover:border-primary"
+            to="/"
+          >
             Jelajahi Menu <span>→</span>
           </Link>
           <button
