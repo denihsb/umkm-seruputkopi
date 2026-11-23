@@ -17,7 +17,7 @@ export default function Toast({ message, onDismiss, onClose }) {
   return (
     <div
       aria-live="polite"
-      className="fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 flex items-center justify-between gap-3 rounded-lg bg-text px-4 py-3 text-sm text-white shadow-lg md:inset-x-auto md:right-4 md:w-auto"
+      className="fixed inset-x-4 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-[70] flex items-center justify-between gap-3 rounded-lg bg-text px-4 py-3 text-sm text-white shadow-lg md:bottom-4 md:inset-x-auto md:right-4 md:w-auto"
       role="status"
     >
       <span>{isCartAddition ? 'Ditambahkan ke keranjang' : message}</span>

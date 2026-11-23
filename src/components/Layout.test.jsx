@@ -38,6 +38,7 @@ function renderLayout(initialItems = [], initialPath = '/dashboard') {
           <Route element={<Layout />}>
             <Route element={<CurrentPath />} path="/dashboard" />
             <Route element={<CurrentPath />} path="/" />
+            <Route element={<CurrentPath />} path="/menu/:id" />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -131,5 +132,11 @@ describe('Layout', () => {
     renderLayout();
     expect(screen.getByRole('link', { name: 'Keranjang, 0 item' })).toBeInTheDocument();
     expect(screen.queryByText('3')).not.toBeInTheDocument();
+  });
+
+  it('menandai halaman detail menu untuk menyembunyikan navigasi bawah mobile', () => {
+    renderLayout([], '/menu/1');
+
+    expect(document.querySelector('.detail-page-shell')).toBeInTheDocument();
   });
 });

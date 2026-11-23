@@ -71,6 +71,7 @@ export default function Layout() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState('');
   const isAdminArea = role === 'owner' && location.pathname.startsWith('/dashboard');
+  const isMenuDetail = /^\/menu\/[^/]+/.test(location.pathname);
 
   async function handleSignOut() {
     setIsSigningOut(true);
@@ -178,7 +179,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="customer-shell">
+    <div className={`customer-shell${isMenuDetail ? ' detail-page-shell' : ''}`}>
       <header className="customer-header">
         <Link className="customer-brand" to="/" aria-label="Seruput Beranda">
           <span className="brand-mark">S</span>

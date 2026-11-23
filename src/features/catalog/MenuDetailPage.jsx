@@ -209,7 +209,7 @@ export default function MenuDetailPage({ onAdd }) {
           </div>
           <AddBar
             canAdd={canAdd}
-            className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur md:static md:mt-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none"
+            className="fixed inset-x-0 bottom-0 z-[60] border-t border-border bg-surface/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur md:static md:z-auto md:mt-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none"
             missingRequiredGroups={missingRequiredGroups}
             onAdd={handleAdd}
             totalPrice={unitPrice * quantity}
